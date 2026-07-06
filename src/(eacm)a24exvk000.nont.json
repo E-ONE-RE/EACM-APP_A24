@@ -1,0 +1,11 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "SAP Object Node Type /EACM/A24EXVK000",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "name": "/EACM/A24EXVK000",
+  "sapObjectType": "/EACM/A24EXVK000",
+  "rootNode": true
+}

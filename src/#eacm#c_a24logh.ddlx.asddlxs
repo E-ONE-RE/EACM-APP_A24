@@ -1,0 +1,59 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: {
+  typeName: 'Upload A24',
+  typeNamePlural: 'Upload A24',
+  title: { type: #STANDARD, value: 'Requestid' },
+  description: { type: #STANDARD, value: 'status' }
+}
+annotate entity /EACM/C_A24LOGH with
+{
+  @UI.facet: [
+    { id: 'Header', type: #IDENTIFICATION_REFERENCE, label: 'Testata', position: 10 },
+    { id: 'Processes', type: #LINEITEM_REFERENCE, label: 'Elaborazioni', position: 30, targetElement: '_Processes'},
+    { id: 'Items', type: #LINEITEM_REFERENCE, label: 'Righe', position: 50, targetElement: '_Items' }
+
+  ]
+  @UI.lineItem: [{ position: 10, label: 'Request ID' }]
+  @UI.identification: [{ position: 10, label: 'Request ID' }]
+  Requestid;
+
+  //    @UI.lineItem: [{ position: 20, label: 'File' }]
+  //    @UI.identification: [{ position: 20, label: 'File' }]
+  //    @UI.selectionField: [{ position: 10 }]
+  //    file_name;
+
+  @UI.lineItem: [{
+    position: 30, label: 'Stato',
+  //    iconUrl: 'StatusIcon',
+    criticality: 'StatusCriticality'
+  }]
+  @UI.identification: [{ position: 30, label: 'Stato' }]
+  @UI.selectionField: [{ position: 20 }]
+  @Consumption.valueHelpDefinition: [{ entity:
+  {name: '/EACM/I_A24_STATUS_H' , element: 'value_low' },
+  distinctValues: true
+  }]
+  Status;
+  ////  @UI.hidden: true
+  //  @UI.lineItem: [{ position: 31, label: 'Stato' }]
+  //  @UI.identification: [{ position: 31, label: 'Stato' }]
+  //  StatusIcon;
+  @UI.hidden: true
+  //  @UI.lineItem: [{ position: 32, label: 'Stato' }]
+  //  @UI.identification: [{ position: 32, label: 'Stato' }]
+  StatusCriticality;
+
+  @UI.lineItem: [{ position: 40, label: 'Creato da' }]
+  @UI.identification: [{ position: 40, label: 'Creato da' }]
+  @UI.selectionField: [{ position: 40 }]
+  @Consumption.valueHelpDefinition: [
+    { entity: { name: 'I_BUSINESSUSERBASIC', element: 'UserID' } , useForValidation: true }
+  ]
+  CreatedBy;
+
+  @UI.lineItem: [{ position: 50, label: 'Creato il' }]
+  @UI.identification: [{ position: 50, label: 'Creato il' }]
+  @UI.selectionField: [{ position: 50 }]
+  @Consumption.filter.selectionType: #INTERVAL
+  CreatedAt;
+}

@@ -1,0 +1,35 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "{{appDescription}}",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "A24 Sales conditions"
+  },
+  "ui5AppDetails": {
+    "appId": "eacm.condsd"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_F750BBC7F236AED044BCBDCEA4FCEE81143753A0_TM",
+    "semanticObject": "ZEACM_CONDSD",
+    "action": "manage",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_F750BBC7F236AED044BCBDCEA4FCEE81143753A0_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "A24 Sales conditions",
+        "subtitle": "CONDSD"
+      }
+    }
+  ]
+}

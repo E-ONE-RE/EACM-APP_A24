@@ -1,0 +1,6 @@
+@EndUserText.label: 'A24 Upload Log Service'
+define service /EACM/UI_A24LOG {
+  expose /EACM/C_A24LOGH as A24UploadHeaders;
+  expose /EACM/C_A24LOGI as A24UploadItems;
+  expose /EACM/C_A24LOGP as A24Processes;
+}

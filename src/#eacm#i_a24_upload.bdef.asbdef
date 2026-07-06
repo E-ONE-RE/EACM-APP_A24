@@ -1,0 +1,27 @@
+unmanaged implementation in class /eacm/bp_i_a24_upload unique;
+strict ( 2 );
+
+define behavior for /EACM/I_A24_UPLOAD //alias <alias_name>
+//late numbering
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create ( authorization : global );
+  update;
+  delete;
+  field ( readonly ) Requestid;
+  association _Items { create; }
+}
+
+define behavior for /EACM/I_A24_UPLOAD_ITEM //alias <alias_name>
+//late numbering
+lock dependent by _Upload
+authorization dependent by _Upload
+//etag master <field_name>
+{
+  update;
+  delete;
+  field ( readonly ) Requestid, Zlineno;
+  association _Upload;
+}

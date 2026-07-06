@@ -1,0 +1,43 @@
+managed implementation in class /EACM/BP_R_IT_913 unique;
+strict ( 2 );
+extensible;
+define behavior for /EACM/R_IT_913 alias /eacm/rIt913
+persistent table /EACM/IT_913
+extensible
+etag master LocalLastChangedAt
+lock master
+authorization master( global )
+{
+  field ( mandatory : create )
+   Bukrs,
+   Blart;
+
+  field ( readonly )
+   CreatedBy,
+   CreatedAt,
+   ChangedBy,
+   ChangedAt,
+   LocalLastChangedAt;
+
+  field ( readonly : update )
+   Bukrs,
+   Blart;
+
+
+  create;
+  update;
+  delete;
+
+  mapping for /EACM/IT_913 corresponding extensible
+  {
+    Bukrs = BUKRS;
+    Blart = BLART;
+    Zf07 = ZF07;
+    CreatedBy = CREATED_BY;
+    CreatedAt = CREATED_AT;
+    ChangedBy = CHANGED_BY;
+    ChangedAt = CHANGED_AT;
+    LocalLastChangedAt = LOCAL_LAST_CHANGED_AT;
+  }
+
+}

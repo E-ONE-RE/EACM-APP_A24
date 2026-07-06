@@ -1,0 +1,6 @@
+@EndUserText.label: '/EACM/C_A24EXVK000'
+@MappingRole: true
+define role /EACM/C_A24EXVK000 {
+  grant select on /EACM/C_A24EXVK000
+  where INHERITING CONDITIONS FROM ENTITY /EACM/R_A24EXVK REPLACING { ROOT WITH _BaseEntity };
+}

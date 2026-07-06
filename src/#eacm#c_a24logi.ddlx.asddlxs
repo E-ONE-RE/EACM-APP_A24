@@ -1,0 +1,59 @@
+@Metadata.layer: #CORE
+
+@UI.headerInfo: {
+  typeName: 'Upload A24',
+  typeNamePlural: 'Upload A24',
+  title: { type: #STANDARD, value: 'Status' },
+  description: { type: #STANDARD, value: 'status' }
+}
+
+annotate entity /EACM/C_A24LOGI with
+{
+
+  @UI.facet: [
+    { id: 'ProcessHeader',
+      type: #IDENTIFICATION_REFERENCE,
+      label: 'Dettaglio linee',
+      position: 10 }
+  ]
+  
+
+  @UI.lineItem: [{ position: 10, label: 'Riga' }]
+  @UI.identification: [{ position: 10, label: 'Riga' }]
+  Zlineno;
+
+  @UI.lineItem: [{ position: 20, label: 'Stato', criticality: 'StatusCriticality' }]
+  @UI.identification: [{ position: 20, label: 'Stato' }]
+  @UI.selectionField: [{ position: 20 }]
+  Status;
+
+  @UI.hidden: true
+  StatusCriticality;
+  @UI.lineItem: [{ position: 30, label: 'Messaggio' }]
+  @UI.identification: [{ position: 30, label: 'Messaggio' }]
+  Message;
+
+  @UI.lineItem: [{ position: 40 }]
+  @UI.identification: [{ position: 40 }]
+  Vkorg;
+
+  @UI.lineItem: [{ position: 50 }]
+  @UI.identification: [{ position: 50 }]
+  Vtweg;
+
+  @UI.lineItem: [{ position: 60 }]
+  @UI.identification: [{ position: 60 }]
+  Zclpr;
+
+  @UI.lineItem: [{ position: 70 }]
+  @UI.identification: [{ position: 70 }]
+  Vbeln;
+
+  @UI.lineItem: [{ position: 80 }]
+  @UI.identification: [{ position: 80 }]
+  Posnr;
+
+  //  @UI.identification: [{ position: 90, label: 'Record originale' }]
+  @UI.hidden: true
+  Record;
+}

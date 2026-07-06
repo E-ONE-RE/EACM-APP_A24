@@ -1,0 +1,35 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "{{appDescription}}",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "SD document type"
+  },
+  "ui5AppDetails": {
+    "appId": "eacm.a24it913"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_2A59783D4C54E24F489EDAF55A599F6CF1B4AF07_TM",
+    "semanticObject": "ZEACM_IT913",
+    "action": "manage",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_2A59783D4C54E24F489EDAF55A599F6CF1B4AF07_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "SD document type",
+        "subtitle": "A24IT913"
+      }
+    }
+  ]
+}

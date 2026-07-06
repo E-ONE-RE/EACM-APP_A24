@@ -1,0 +1,5 @@
+@EndUserText.label: 'Interfaccia A24'
+define service /EACM/UI_A24_UPLOAD {
+  expose /EACM/C_A24_UPLOAD      as Upload;
+  expose /EACM/C_A24_UPLOAD_ITEM as Item;
+}

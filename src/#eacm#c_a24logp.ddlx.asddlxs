@@ -1,0 +1,45 @@
+@Metadata.layer: #CORE
+
+@UI.headerInfo: {
+  typeName: 'Upload A24',
+  typeNamePlural: 'Upload A24',
+  title: { type: #STANDARD, value: 'Tmsp' },
+  description: { type: #STANDARD, value: 'Tmsp' }
+}
+
+annotate entity /EACM/C_A24LOGP with
+{
+
+  @UI.facet: [
+    { id: 'ProcessHeader',
+      type: #IDENTIFICATION_REFERENCE,
+      label: 'Dettaglio elaborazione',
+      position: 10 }
+  ]
+  
+  
+  @UI.lineItem: [{ position: 10, label: 'Timestamp' }]
+  @UI.identification: [{ position: 10, label: 'Timestamp' }]
+  Tmsp;
+
+  @UI.lineItem: [{ position: 20, label: 'Stato', criticality: 'StatusCriticality' }]
+  @UI.identification: [{ position: 20, label: 'Stato' }]
+  Status;
+  @UI.hidden: true
+  StatusCriticality;
+  @UI.lineItem: [{ position: 30, label: 'Record totali' }]
+  @UI.identification: [{ position: 30, label: 'Record totali' }]
+  TotalRecords;
+
+  @UI.lineItem: [{ position: 40, label: 'Elaborati con successo' }]
+  @UI.identification: [{ position: 40, label: 'Elaborati con successo' }]
+  SuccessRecords;
+
+  @UI.lineItem: [{ position: 50, label: 'Errori' }]
+  @UI.identification: [{ position: 50, label: 'Errori'}]
+  ErrorRecords;
+
+  @UI.lineItem: [{ position: 60, label: 'In attesa' }]
+  @UI.identification: [{ position: 60, label: 'In attesa' }]
+  WaitRecords;
+}

@@ -1,0 +1,12 @@
+@EndUserText: {
+  label: 'Service Definition for /EACM/C_TDSDFI'
+}
+@ObjectModel: {
+  leadingEntity: {
+    name: '/EACM/C_TDSDFI000'
+  }
+}
+define service /EACM/UI_TDSDFI_O4
+  provider contracts odata_v4_ui {
+  expose /EACM/C_TDSDFI000;
+}

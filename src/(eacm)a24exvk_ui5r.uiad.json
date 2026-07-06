@@ -1,0 +1,35 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "{{appDescription}}",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "Exclusion sales organization"
+  },
+  "ui5AppDetails": {
+    "appId": "eacm.a24exvk"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_CC49095CCB48C4E070B9BEAED5618765BBA070F4_TM",
+    "semanticObject": "ZEACM_A24EXVK",
+    "action": "manage",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_CC49095CCB48C4E070B9BEAED5618765BBA070F4_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "Exclusion sales organization",
+        "subtitle": "A24EXVK"
+      }
+    }
+  ]
+}

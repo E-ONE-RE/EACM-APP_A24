@@ -1,0 +1,47 @@
+managed implementation in class /EACM/BP_R_A24EXVK unique;
+strict ( 2 );
+with draft;
+extensible;
+define behavior for /EACM/R_A24EXVK alias /eacm/rA24exvk
+persistent table /EACM/A24EXVK
+extensible
+draft table /eacm/a24exvk_d
+etag master LocalLastChangedAt
+lock master total etag ChangedAt
+authorization master( global )
+{
+  field ( mandatory : create )
+   Vkorg;
+
+  field ( readonly )
+   CreatedBy,
+   CreatedAt,
+   ChangedBy,
+   ChangedAt,
+   LocalLastChangedAt;
+
+  field ( readonly : update )
+   Vkorg;
+
+
+  create;
+  update;
+  delete;
+
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+
+  mapping for /EACM/A24EXVK corresponding extensible
+  {
+    Vkorg = VKORG;
+    CreatedBy = CREATED_BY;
+    CreatedAt = CREATED_AT;
+    ChangedBy = CHANGED_BY;
+    ChangedAt = CHANGED_AT;
+    LocalLastChangedAt = LOCAL_LAST_CHANGED_AT;
+  }
+
+}

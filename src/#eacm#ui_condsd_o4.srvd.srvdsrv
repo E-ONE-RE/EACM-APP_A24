@@ -1,0 +1,11 @@
+@EndUserText: {
+  label: 'Service Definition for /EACM/C_CONDSD'
+}
+@ObjectModel: {
+  leadingEntity: {
+    name: '/EACM/C_CONDSD'
+  }
+}
+define service /EACM/UI_CONDSD_O4 provider contracts odata_v4_ui {
+  expose /EACM/C_CONDSD;
+}

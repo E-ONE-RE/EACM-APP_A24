@@ -1,0 +1,6 @@
+@EndUserText.label: '/EACM/C_TDSDFI'
+@MappingRole: true
+define role /EACM/C_TDSDFI {
+  grant select on /EACM/C_TDSDFI
+  where INHERITING CONDITIONS FROM ENTITY /EACM/I_TDSDFI REPLACING { ROOT WITH _BaseEntity };
+}

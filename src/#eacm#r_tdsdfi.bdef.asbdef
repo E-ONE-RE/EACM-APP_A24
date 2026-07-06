@@ -1,0 +1,51 @@
+managed implementation in class /EACM/BP_R_TDSDFI unique;
+strict ( 2 );
+with draft;
+extensible;
+define behavior for /EACM/R_TDSDFI alias /eacm/rTdsdfi
+persistent table /EACM/TDSDFI
+extensible
+draft table /EACM/TDSDFI_D
+etag master LocalLastChangedAt
+lock master total etag ChangedAt
+authorization master( global )
+{
+  field ( mandatory : create )
+   Vkorg,
+   Fkart;
+
+  field ( readonly )
+   CreatedBy,
+   CreatedAt,
+   ChangedBy,
+   ChangedAt,
+   LocalLastChangedAt;
+
+  field ( readonly : update )
+   Vkorg,
+   Fkart;
+
+
+  create;
+  update;
+  delete;
+
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+
+  mapping for /EACM/TDSDFI corresponding extensible
+  {
+    Vkorg = VKORG;
+    Fkart = FKART;
+    Blart = BLART;
+    CreatedBy = CREATED_BY;
+    CreatedAt = CREATED_AT;
+    ChangedBy = CHANGED_BY;
+    ChangedAt = CHANGED_AT;
+    LocalLastChangedAt = LOCAL_LAST_CHANGED_AT;
+  }
+
+}

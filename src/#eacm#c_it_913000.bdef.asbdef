@@ -1,0 +1,13 @@
+projection implementation in class /EACM/BP_C_IT_913000 unique;
+strict ( 2 );
+extensible;
+use side effects;
+define behavior for /EACM/C_IT_913000 alias /eacm/cIt913000
+extensible
+use etag
+{
+  use create;
+  use update;
+  use delete;
+
+}

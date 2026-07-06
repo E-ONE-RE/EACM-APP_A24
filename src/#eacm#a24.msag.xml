@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_MSAG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <T100A>
+    <ARBGB>/EACM/A24</ARBGB>
+    <MASTERLANG>E</MASTERLANG>
+    <STEXT>Tracciato A24</STEXT>
+   </T100A>
+   <T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>001</MSGNR>
+     <TEXT>Double record</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>002</MSGNR>
+     <TEXT>No entrys in /EACM/TDSDFI for: &amp;1, &amp;2</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>003</MSGNR>
+     <TEXT>No entrys in /EACM/CONDSD for: &amp;1, &amp;2</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>004</MSGNR>
+     <TEXT>Error number_get /EACM/AGEB</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>005</MSGNR>
+     <TEXT>Company field empty</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>006</MSGNR>
+     <TEXT>Sales Organization field empty</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>007</MSGNR>
+     <TEXT>Division field empty</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>008</MSGNR>
+     <TEXT>Unknown agent code &amp;1</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>009</MSGNR>
+     <TEXT>No contract for agent &amp;1 as of &amp;2</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>010</MSGNR>
+     <TEXT>Document number not valued</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>011</MSGNR>
+     <TEXT>Customer &amp;1 not found</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>012</MSGNR>
+     <TEXT>FI document not found: &amp;1-&amp;2-&amp;3</TEXT>
+    </T100>
+   </T100>
+  </asx:values>
+ </asx:abap>
+</abapGit>
