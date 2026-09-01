@@ -273,6 +273,28 @@ CLASS lsc_I_A24_UPLOAD IMPLEMENTATION.
   METHOD save.
     INSERT /eacm/a24logh FROM TABLE @lhc_I_A24_UPLOAD=>gt_header.
     INSERT /eacm/a24logi FROM TABLE @lhc_I_A24_UPLOAD=>gt_items.
+
+    "/schedulazione job
+    GET TIME STAMP FIELD DATA(lv_now).
+
+    DATA(ls_start_info) =
+      VALUE cl_apj_rt_api=>ty_start_info(
+        timestamp = cl_abap_tstmp=>add_to_short(
+          tstmp = lv_now
+          secs  = 30 ) ).
+
+    TRY.
+        cl_apj_rt_api=>schedule_job(
+          EXPORTING
+            iv_job_template_name   = '/EACM/TMPL_A24_JOB'
+            iv_job_text            = 'A24'
+            is_start_info          = ls_start_info
+        ).
+      CATCH cx_apj_rt ##NO_HANDLER.
+        "handle exception
+    ENDTRY.
+    "\schedulazione job
+
   ENDMETHOD.
 
   METHOD cleanup.

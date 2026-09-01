@@ -3,7 +3,7 @@
 @UI.headerInfo.title.value: 'Bukrs'
 @UI.headerInfo.description.type: #STANDARD
 @UI.headerInfo.description.value: 'Bukrs'
-annotate view /EACM/C_IT_913 with
+annotate view /EACM/C_IT_913000 with
 {
   @UI.facet: [ {
     label: 'General Information', 

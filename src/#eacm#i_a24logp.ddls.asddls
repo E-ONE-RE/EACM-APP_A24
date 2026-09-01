@@ -20,5 +20,6 @@ define view entity /EACM/I_A24LOGP
       success_records as SuccessRecords,
       error_records   as ErrorRecords,
       wait_records    as WaitRecords,
+      not_relevante   as NotRelevant,
       _Header
 }

@@ -12,6 +12,7 @@ define view entity /EACM/C_A24LOGP
       SuccessRecords,
       ErrorRecords,
       WaitRecords,
+      NotRelevant,
       /* Associations */
       _Header : redirected to parent /EACM/C_A24LOGH
 }

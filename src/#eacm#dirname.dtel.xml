@@ -19,6 +19,19 @@
     <REFKIND>D</REFKIND>
     <ABAP_LANGUAGE_VERSION>5</ABAP_LANGUAGE_VERSION>
    </DD04V>
+   <I18N_LANGS>
+    <LANGU>I</LANGU>
+   </I18N_LANGS>
+   <DD04_TEXTS>
+    <item>
+     <DDLANGUAGE>I</DDLANGUAGE>
+     <DDTEXT>/EACM/DIRNAME</DDTEXT>
+     <REPTEXT>Nome del percorso</REPTEXT>
+     <SCRTEXT_S>Nome perc.</SCRTEXT_S>
+     <SCRTEXT_M>Nome percorso</SCRTEXT_M>
+     <SCRTEXT_L>Nome del percorso</SCRTEXT_L>
+    </item>
+   </DD04_TEXTS>
   </asx:values>
  </asx:abap>
 </abapGit>

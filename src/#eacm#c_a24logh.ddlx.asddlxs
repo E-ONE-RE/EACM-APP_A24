@@ -5,6 +5,22 @@
   title: { type: #STANDARD, value: 'Requestid' },
   description: { type: #STANDARD, value: 'status' }
 }
+
+@UI.presentationVariant: [
+  {
+    sortOrder: [
+      {
+        by: 'CreatedAt',
+        direction: #DESC
+      }
+    ],
+    visualizations: [
+      {
+        type: #AS_LINEITEM
+      }
+    ]
+  }
+]
 annotate entity /EACM/C_A24LOGH with
 {
   @UI.facet: [
@@ -51,9 +67,15 @@ annotate entity /EACM/C_A24LOGH with
   ]
   CreatedBy;
 
-  @UI.lineItem: [{ position: 50, label: 'Creato il' }]
-  @UI.identification: [{ position: 50, label: 'Creato il' }]
+//  @UI.lineItem: [{ position: 50, label: 'Creato il' }]
+//  @UI.identification: [{ position: 50, label: 'Creato il' }]
   @UI.selectionField: [{ position: 50 }]
   @Consumption.filter.selectionType: #INTERVAL
   CreatedAt;
+  
+  @UI.lineItem: [{ position: 60, label: 'Creato il' }]
+  @UI.identification: [{ position: 60, label: 'Creato il' }]
+//  @UI.selectionField: [{ position: 60 }]
+  @Consumption.filter.selectionType: #INTERVAL
+  CreatedAtDisplay;
 }

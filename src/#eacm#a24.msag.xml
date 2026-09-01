@@ -80,6 +80,48 @@
      <MSGNR>012</MSGNR>
      <TEXT>FI document not found: &amp;1-&amp;2-&amp;3</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>013</MSGNR>
+     <TEXT>Payer client not found in accounting &amp;1 &amp;2 &amp;3</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>014</MSGNR>
+     <TEXT>Empty Customer/Agent</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>015</MSGNR>
+     <TEXT>Empty Sales Org.</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>016</MSGNR>
+     <TEXT>Empty Item category</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>017</MSGNR>
+     <TEXT>Empty Billing Type</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>018</MSGNR>
+     <TEXT>Empty procedure flag</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>/EACM/A24</ARBGB>
+     <MSGNR>019</MSGNR>
+     <TEXT>Zero commission</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

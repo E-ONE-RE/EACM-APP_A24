@@ -17,6 +17,11 @@ define root view entity /EACM/I_A24LOGH
         $session.client,
         'NULL'
       )          as CreatedAt,
+      tstmpl_to_utcl(
+        created_at,
+        'FAIL',
+        'INITIAL'
+      )          as CreatedAtDisplay,
       //    file_name as FileName,
       status     as Status,
 //      case status

@@ -8,6 +8,7 @@ define root view entity /EACM/C_A24LOGH
   key Requestid,
       CreatedBy,
       CreatedAt,
+      CreatedAtDisplay,
       Status,
 //      StatusIcon,
       StatusCriticality,

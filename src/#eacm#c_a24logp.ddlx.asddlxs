@@ -42,4 +42,9 @@ annotate entity /EACM/C_A24LOGP with
   @UI.lineItem: [{ position: 60, label: 'In attesa' }]
   @UI.identification: [{ position: 60, label: 'In attesa' }]
   WaitRecords;
+  
+  @UI.lineItem: [{ position: 70, label: 'Non rilevante' }]
+  @UI.identification: [{ position: 70, label: 'Non rilevante' }]
+  NotRelevant;
+  
 }

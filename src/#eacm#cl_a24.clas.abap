@@ -57,6 +57,27 @@ CLASS /eacm/cl_a24 DEFINITION
     TYPES vbeln TYPE /eacm/prdo-vbeln.
     TYPES END OF tp_dosum.
 
+
+*    TYPES BEGIN OF ty_bp_already_requested.
+*    TYPES partner_id TYPE kunnr.
+*    TYPES name1 TYPE /eacm/st_a24_commission-name1.
+*    TYPES END OF ty_bp_already_requested.
+*    DATA gt_bp_already_requested TYPE STANDARD TABLE OF ty_bp_already_requested.
+
+
+*    TYPES BEGIN OF ty_acc_already_requested.
+*    TYPES sender_bukrs TYPE bukrs.
+*    TYPES sender_belnr TYPE belnr_d.
+*    TYPES sender_gjahr TYPE gjahr.
+*    TYPES bukrs TYPE bukrs.
+*    TYPES belnr TYPE belnr_d.
+*    TYPES gjahr TYPE gjahr.
+*    TYPES blart TYPE blart.
+*    TYPES bldat TYPE bldat.
+*    TYPES END OF ty_acc_already_requested.
+*    DATA gt_acc_already_requested TYPE STANDARD TABLE OF ty_acc_already_requested.
+
+
     METHODS get_items RETURNING VALUE(r_items) TYPE /eacm/tt_a24logi.
     METHODS scrittura_record
       IMPORTING
@@ -117,11 +138,28 @@ CLASS /eacm/cl_a24 DEFINITION
       IMPORTING
         i_headers TYPE /eacm/tt_a24logi.
 
+    DATA mo_api_bp TYPE REF TO /eacm/cl_api_business_partner.
+    DATA mo_api_acc TYPE REF TO /eacm/cl_api_acct_doc_read.
+
+    METHODS get_bp_api
+      RETURNING
+        VALUE(ro_api) TYPE REF TO /eacm/cl_api_business_partner
+      RAISING
+        /eacm/cx_api_error.
+    METHODS get_acc_api
+      RETURNING
+        VALUE(ro_api) TYPE REF TO /eacm/cl_api_acct_doc_read
+      RAISING
+        /eacm/cx_api_error.
+
+    METHODS close_api_clients.
+
 ENDCLASS.
 
 
 
 CLASS /eacm/cl_a24 IMPLEMENTATION.
+
 
   METHOD if_apj_rt_run~execute.
 
@@ -135,6 +173,25 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_bp_api.
+
+    IF mo_api_bp IS NOT BOUND.
+      mo_api_bp = NEW /eacm/cl_api_business_partner( ).
+    ENDIF.
+
+    ro_api = mo_api_bp.
+
+  ENDMETHOD.
+  METHOD get_acc_api.
+
+    IF mo_api_acc IS NOT BOUND.
+      DATA(lv_service_id) = /eacm/cl_api_acct_doc_read=>mapp_service_id.
+      mo_api_acc = NEW /eacm/cl_api_acct_doc_read( lv_service_id ).
+    ENDIF.
+
+    ro_api = mo_api_acc.
+
+  ENDMETHOD.
   METHOD get_items.
     "segno i record come IN_PROGRESS per fare in modo che un JOB sovrapposto possa estrarlo e lavorarlo
     "Solo i record RECEIVED e WAIT sono da elaborare
@@ -142,15 +199,17 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 
     SELECT FROM /eacm/a24logh
     FIELDS requestid
-    WHERE status = @c_h_received OR status = @c_h_partially
+    WHERE ( status = @c_h_received OR status = @c_h_partially )
+*    AND requestid = '707603F24B8647AB872DDF50428CFFF9'
     INTO TABLE @DATA(lt_header).
 
     LOOP AT lt_header INTO DATA(ls_header).
+
       UPDATE /eacm/a24logh
       SET status = @c_h_inprogress
       WHERE requestid =  @ls_header-requestid
       AND ( status = @c_h_received OR status = @c_h_partially ).
-      IF sy-dbcnt = 1.
+      IF sy-subrc = 0.
         "testata libera e bloccata
         UPDATE /eacm/a24logi
         SET status = @c_h_inprogress
@@ -204,6 +263,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD make_commission.
     CLEAR r_result.
@@ -261,8 +321,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     ENDIF.
 
     IF i_record-vrtnr = space.  "Cliente/Agente
+      MESSAGE e014(/eacm/a24) INTO msg.
       UPDATE /eacm/a24logi
-      SET status = @c_i_notrelevant
+      SET status = @c_i_notrelevant,
+      message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
       COMMIT WORK AND WAIT.
@@ -274,8 +336,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     FROM /eacm/a24exvk
     WHERE vkorg = @i_record-vkorg..
     IF sy-subrc = 0.
+      MESSAGE e015(/eacm/a24) INTO msg.
       UPDATE /eacm/a24logi
-      SET status = @c_i_notrelevant
+      SET status = @c_i_notrelevant,
+      message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
       COMMIT WORK AND WAIT.
@@ -283,8 +347,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     ENDIF.
 
     IF i_record-pstyp <> 'N'.
+      MESSAGE e016(/eacm/a24) INTO msg.
       UPDATE /eacm/a24logi
-      SET status = @c_i_notrelevant
+      SET status = @c_i_notrelevant,
+      message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
       COMMIT WORK AND WAIT.
@@ -292,8 +358,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     ENDIF.
 
     IF i_record-fkart IS INITIAL.
+      MESSAGE e017(/eacm/a24) INTO msg.
       UPDATE /eacm/a24logi
-        SET status = @c_i_notrelevant
+        SET status = @c_i_notrelevant,
+        message = @msg
         WHERE requestid = @i_item-requestid
         AND zlineno = @i_item-zlineno.
       COMMIT WORK AND WAIT.
@@ -301,8 +369,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     ENDIF.
 
     IF i_record-zflg+001(001) <> abap_true.
+      MESSAGE e018(/eacm/a24) INTO msg.
       UPDATE /eacm/a24logi
-        SET status = @c_i_notrelevant
+        SET status = @c_i_notrelevant,
+        message = @msg
         WHERE requestid = @i_item-requestid
         AND zlineno = @i_item-zlineno.
       COMMIT WORK AND WAIT.
@@ -369,7 +439,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    r_result-kndnr+000(004) = '0011'.
+*    r_result-kndnr+000(004) = '0011'.
     r_result-blart = lv_blart.
 
     scrittura_record(
@@ -382,6 +452,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
      ).
 
   ENDMETHOD.
+
 
   METHOD lettura_condizioni.
 
@@ -729,8 +800,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       INTO @lv_name.
       IF sy-subrc <> 0.
         TRY.
-            DATA(lo_api) = NEW /eacm/cl_api_business_partner( ).
+*            DATA(lo_api) = NEW /eacm/cl_api_business_partner( ).
+            DATA(lo_api) = get_bp_api( ).
             DATA(ls_address) = lo_api->read_with_addresses( i_record-kndnr ).
+            DATA(ls_tax) = lo_api->read_with_tax_numbers( i_record-kndnr ).
             IF ls_address IS NOT INITIAL.
               DATA ls_bp_cache TYPE /eacm/bp_cache.
               ls_bp_cache-business_partner = i_record-kndnr.
@@ -745,8 +818,28 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 *              ls_bp_cache-stceg = ls_address-bp-.
 *              ls_bp_cache-stcd1 = .
               ls_bp_cache-last_change_date = ls_address-bp-last_change_date.
+              "/TAX
+              ls_bp_cache-stceg = ls_tax-vat_number.
+              ls_bp_cache-stcd1 = ls_tax-tax_code.
+              LOOP AT ls_tax-tax_numbers INTO DATA(ls_tax_number).
+                CASE ls_tax_number-tax_type+2(1).
+                  WHEN '0'.
+                    IF ls_tax-vat_number IS INITIAL.
+                      ls_bp_cache-stceg = ls_tax_number-tax_number.
+                    ENDIF.
+                  WHEN '1'.
+                    IF ls_tax-tax_code IS INITIAL.
+                      ls_bp_cache-stcd1 = ls_tax_number-tax_number.
+                    ENDIF.
+                  WHEN '2'.
+                    ls_bp_cache-stcd2 = ls_tax_number-tax_number.
+                ENDCASE.
+              ENDLOOP.
+              IF ls_bp_cache-stcd1 IS INITIAL.
+                ls_bp_cache-stcd1 = ls_bp_cache-stceg.
+              ENDIF.
+              "\TAX
               INSERT /eacm/bp_cache FROM  @ls_bp_cache.
-              lv_name = ls_bp_cache-last_name && ' ' &&  ls_bp_cache-first_name.
             ENDIF.
           CATCH /eacm/cx_api_error INTO DATA(lx).
             DATA(msg) = lx->get_text( ).
@@ -781,8 +874,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
   METHOD fill_zprdo.
 
     IF i_comm-iprov = 0.
+      MESSAGE e019(/eacm/a24) INTO DATA(msg).
       UPDATE /eacm/a24logi
-      SET status = @c_i_notrelevant
+      SET status = @c_i_notrelevant,
+      message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
       COMMIT WORK AND WAIT.
@@ -792,7 +887,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     DATA ls_zprdo TYPE /eacm/prdo.
     CLEAR ls_zprdo.
 
-
+    ls_zprdo-vkorg = i_comm-vkorg.
     ls_zprdo-zclpr = 'SB'.
     ls_zprdo-fkdat = i_comm-fkdat.
     ls_zprdo-zvgdt = ls_zprdo-fkdat.
@@ -855,26 +950,44 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-**********************************************************************
-*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-*****    SELECT SINGLE FROM bkpf
-*****    FIELDS blart, bldat
-*****      WHERE bukrs = @ls_zprdo-bukrs
-*****        AND belnr = @ls_zprdo-belnr
-*****        AND gjahr = @ls_zprdo-gjahr
-*****        INTO (@ls_zprdo-blart, @ls_zprdo-bldat).
-*****    IF sy-subrc NE 0.
-*****      APPEND i_comm TO tb_err.
-*****      PERFORM a0100_error USING i_comm ca_err_bkpf space.
-*****      CONTINUE.
-*****    ENDIF.
-*****
-*****    IF ls_zprdo-blart NE i_comm-blart.
-*****      APPEND i_comm TO tb_err.
-*****      PERFORM a0100_error USING i_comm ca_err_zi9ce space.
-*****      CONTINUE.
-*****    ENDIF.
-*XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+*/  Documento da Sender
+*    DATA(lv_service_id) = /eacm/cl_api_acct_doc_read=>mapp_service_id.
+*https://zhl.wdisp.bosch.com/sap/opu/odata4/rb4h/cfin_a_fidocmapping/srvd_a2x/rb4h/cfin_fidocmapping/0001
+*/CentralFinanceDocumentMapping(SenderLogicalSystem='SAPYOE011',SenderCompanyCode='9730',SenderAccountingDocument='1580006340',SenderFiscalYear='2026')
+    TRY.
+*        DATA(lo_api_map) = NEW /eacm/cl_api_acct_doc_read( lv_service_id ).
+        DATA(lo_api_map) = get_acc_api( ).
+
+        DATA(ls_doc_mpa) = lo_api_map->read_document_map(
+          EXPORTING
+            iv_sender_logical_system      = ''
+            iv_sender_company_code        = ls_zprdo-bukrs
+            iv_sender_accounting_document = ls_zprdo-belnr
+            iv_sender_fiscal_year         = CONV string( ls_zprdo-gjahr )
+        ).
+
+        IF ls_doc_mpa IS NOT INITIAL.
+          ls_zprdo-bukrs = ls_doc_mpa-companycode.
+          ls_zprdo-belnr = ls_doc_mpa-accountingdocument.
+          ls_zprdo-gjahr = ls_doc_mpa-fiscalyear.
+          ls_zprdo-blart = ls_doc_mpa-accountingdocumenttype.
+          ls_zprdo-bldat = ls_doc_mpa-documentdate.
+        ENDIF.
+
+      CATCH /eacm/cx_api_error INTO DATA(lo_cx).
+        lv_msg = lo_cx->get_text( ).
+        UPDATE /eacm/a24logi
+        SET status = @c_i_error,
+        message = @lv_msg
+        WHERE requestid = @i_item-requestid
+        AND zlineno = @i_item-zlineno.
+        COMMIT WORK AND WAIT.
+        lo_api_map->close( ).
+        RETURN.
+
+    ENDTRY.
+    lo_api_map->close( ).
+*\  Documento da Sender
 
     SELECT COUNT( * )
      FROM /eacm/bp_cache
@@ -884,8 +997,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       ls_zprdo-kunrg = i_comm-kndnr.
     ELSE.
       TRY.
-          DATA(lo_api) = NEW /eacm/cl_api_business_partner( ).
+*          DATA(lo_api) = NEW /eacm/cl_api_business_partner( ).
+          DATA(lo_api) = get_bp_api( ).
           DATA(ls_address) = lo_api->read_with_addresses( i_comm-kndnr ).
+          DATA(ls_tax) = lo_api->read_with_tax_numbers( i_comm-kndnr ).
           IF ls_address IS NOT INITIAL.
             DATA ls_bp_cache TYPE /eacm/bp_cache.
             ls_bp_cache-business_partner = ls_address-bp-business_partner.
@@ -900,6 +1015,27 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 *              ls_bp_cache-stceg = ls_address-bp-.
 *              ls_bp_cache-stcd1 = .
             ls_bp_cache-last_change_date = ls_address-bp-last_change_date.
+            "/TAX
+            ls_bp_cache-stceg = ls_tax-vat_number.
+            ls_bp_cache-stcd1 = ls_tax-tax_code.
+            LOOP AT ls_tax-tax_numbers INTO DATA(ls_tax_number).
+              CASE ls_tax_number-tax_type+2(1).
+                WHEN '0'.
+                  IF ls_tax-vat_number IS INITIAL.
+                    ls_bp_cache-stceg = ls_tax_number-tax_number.
+                  ENDIF.
+                WHEN '1'.
+                  IF ls_tax-tax_code IS INITIAL.
+                    ls_bp_cache-stcd1 = ls_tax_number-tax_number.
+                  ENDIF.
+                WHEN '2'.
+                  ls_bp_cache-stcd2 = ls_tax_number-tax_number.
+              ENDCASE.
+            ENDLOOP.
+            IF ls_bp_cache-stcd1 IS INITIAL.
+              ls_bp_cache-stcd1 = ls_bp_cache-stceg.
+            ENDIF.
+            "\TAX
             INSERT /eacm/bp_cache FROM  @ls_bp_cache.
             ls_zprdo-kunrg = i_comm-kndnr.
           ELSE.
@@ -914,15 +1050,15 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
             RETURN.
           ENDIF.
         CATCH /eacm/cx_api_error INTO DATA(lx).
-          DATA(msg) = lx->get_text( ).
+          msg = lx->get_text( ).
       ENDTRY.
     ENDIF.
 
     "Valuta
     SELECT SINGLE FROM /eacm/t001
-    FIELDS waers, waers
+    FIELDS waers
     WHERE bukrs = @ls_zprdo-bukrs
-    INTO (@ls_zprdo-zwaer, @ls_zprdo-waerk ).
+    INTO @ls_zprdo-z_zwaer.
     ls_zprdo-zwaer = i_comm-waers.
 
 *    vn_foreign_factor = ca_foreign_factor.   "100 -> Due decimali
@@ -937,7 +1073,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
             date              = ls_zprdo-fkdat
             foreign_amount    = ls_zprdo-zimcd
             foreign_currency  = ls_zprdo-zwaer
-            local_currency    = ls_zprdo-waerk
+            local_currency    = ls_zprdo-z_zwaer
           IMPORTING
             exchange_rate = ls_zprdo-kurrf
             local_amount      = ls_zprdo-zimco
@@ -948,7 +1084,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
             date              = ls_zprdo-fkdat
             foreign_amount    = ls_zprdo-zimpd
             foreign_currency  = ls_zprdo-zwaer
-            local_currency    = ls_zprdo-waerk
+            local_currency    = ls_zprdo-z_zwaer
           IMPORTING
             exchange_rate = ls_zprdo-kurrf
             local_amount      = ls_zprdo-zimpp
@@ -959,117 +1095,75 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         ls_zprdo-zimpp = ls_zprdo-zimpd.
     ENDTRY.
 
-**XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-*    CLEAR ls_zprdo-zlord.
-*    CLEAR ls_zprdo-zimlr.
-*
-*    TRY.
-*        DATA(lo_api) = NEW /eacm/cl_api_acct_doc_read( ).
-*        DATA(lt_fi_items) = lo_api->read_document(
-*            iv_company_code = ls_zprdo-bukrs
-*            iv_fiscal_year = CONV string( ls_zprdo-gjahr )
-*            iv_accounting_document = ls_zprdo-belnr ).
-*      CATCH /eacm/cx_api_error INTO DATA(lo_cx).
-*        "FI document not found: &1-&2-&3
-*        MESSAGE e012(/eacm/a24) WITH ls_zprdo-bukrs ls_zprdo-gjahr ls_zprdo-belnr INTO lv_msg.
-*        UPDATE /eacm/a24logi
-*        SET status = @c_i_wait,
-*        message = @lv_msg
-*        WHERE requestid = @i_item-requestid.
-*        COMMIT WORK AND WAIT.
-*        RETURN.
-*    ENDTRY.
-*
-**    LOOP AT lt_fi_items INTO DATA(ls_fi_item)
-**    WHERE .
-**
-***    ho bisogno che alla classe /eacm/cl_api_acct_doc_read la struttura della tabella restituita dal metodo read_document venga arricchita dai campi:
-***    FinancialAccountType e Customer
-***In più ho bisogno di recuperare BSEG-ZTERM e BSEG-ZFBDT che sono disponibili sulla vista I_OperationalAcctgDocItem come:
-***zfbdt               as  DueCalculationBaseDate,
-***zterm               as  PaymentTerms,
-**
-**è necessario attivare anche API_ACC_DOCUMENT_SRV
-**Header documento        -> API_ACC_DOCUMENT_SRV / A_AccountingDocument
-**Righe contabili base    -> API_ACC_DOCUMENT_SRV / A_OperationalAcctgDocItem
-**Campi ZFBDT, ZTERM      -> meglio via I_OperationalAcctgDocItem o custom CDS/API
-**Cube analitico ACDOCA   -> API_OPLACCTGDOCITEMCUBE_SRV
-**
-***koart                                                                                            as FinancialAccountType,
-***kunnr                                                                                            as Customer,
-***DMBTR importo con segno = hsl                                                                                              as AmountInCompanyCodeCurrency,
-***WRBTR importo con segno = wsl                                                                                              as AmountInTransactionCurrency,
-**        company_code              TYPE c LENGTH 4,
-**        fiscal_year               TYPE c LENGTH 4,
-**        accounting_document       TYPE c LENGTH 10,
-**        accounting_document_item  TYPE c LENGTH 6,
-**        gl_account                TYPE c LENGTH 10,
-**        debit_credit_code         TYPE c LENGTH 1,
-**        amount_in_company_curr    TYPE ty_amount,   *DMBTR
-**        company_currency          TYPE c LENGTH 5,
-**        amount_in_trans_currency  TYPE ty_amount,   *WRBTR
-**        transaction_currency      TYPE c LENGTH 5,
-**        document_type             TYPE c LENGTH 2,
-**        posting_date              TYPE d,
-**        document_date             TYPE d,
-**        clearing_date             TYPE d,
-**        clearing_document         TYPE c LENGTH 10,
-**        cost_center               TYPE c LENGTH 10,
-**        profit_center             TYPE c LENGTH 10,
-**        assignment_reference      TYPE c LENGTH 18,
-**        document_item_text        TYPE c LENGTH 50,
-**        document_reference_id     TYPE c LENGTH 16,
-**        accounting_doc_created_by TYPE c LENGTH 12,
-**        creation_date             TYPE d,
-**
-**    ENDLOOP.
-*
-**define view I_GLAccountLineItemRawData
-**  as select from P_ACDOCA
-*    CLEAR vd_zfbdt.
-*    CLEAR va_shkzg.
-*    CLEAR: vn_kunnr, fl_knrza.
-*    SELECT dmbtr wrbtr zfbdt shkzg zterm kunnr
-*       FROM bseg
-*       INTO (vn_dmbtr, vn_wrbtr, vd_zfbdt_tmp, va_shkzg, va_zterm,
-*             vn_kunnr)
-*                       WHERE bukrs = ls_zprdo-bukrs
-*                         AND belnr = ls_zprdo-belnr
-*                         AND gjahr = ls_zprdo-gjahr
-**                         AND koart = ca_cl_cliente.
-*                         AND koart = 'D'.
-*      ADD vn_dmbtr TO ls_zprdo-zlord.
-*      ADD vn_wrbtr TO ls_zprdo-zimlr.
-*      IF vd_zfbdt_tmp > vd_zfbdt.
-*        vd_zfbdt = vd_zfbdt_tmp.
-*      ENDIF.
-*      IF NOT ( vn_kunnr IS INITIAL ).
-**   KNRZA (Cliente Pagatore)
-*        "cliente Centrale in caso di gruppi d'acquisto
-*        ls_zprdo-knrza = vn_kunnr.
-*        fl_knrza = 'X'.
-*      ENDIF.
-*    ENDSELECT.
-*    IF sy-subrc <> 0.
-*      APPEND i_comm TO tb_err.
-*      PERFORM a0100_error USING i_comm ca_err_bkpf space.
-*      CONTINUE.
-*    ELSEIF fl_knrza IS INITIAL.
-*      APPEND i_comm TO tb_err.
-*      PERFORM a0100_error USING i_comm ca_err_knrza space.
-*      CONTINUE.
-*    ENDIF.
-*    vbtyp
-*     case va_shkzg.
-*  WHEN 'S'.
-*    ls_zprdo-vbtyp = ca_negativo.
-*  WHEN 'H'.
-*    ls_zprdo-vbtyp = ca_positivo.
-*ENDCASE.
-*ls_zprdo-zutmx = vd_zfbdt.
-*ls_zprdo-zterm = va_zterm.
-**XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    TRY.
+        DATA(lo_api_acc) = NEW /eacm/cl_api_acct_doc_read( ).
+        DATA(lt_fi_items) = lo_api_acc->read_document(
+            iv_company_code = ls_zprdo-bukrs
+            iv_fiscal_year = CONV string( ls_zprdo-gjahr )
+            iv_accounting_document = ls_zprdo-belnr ).
+      CATCH /eacm/cx_api_error INTO lo_cx.
+        "FI document not found: &1-&2-&3
+        MESSAGE e012(/eacm/a24) WITH ls_zprdo-bukrs ls_zprdo-gjahr ls_zprdo-belnr INTO lv_msg.
+        UPDATE /eacm/a24logi
+        SET status = @c_i_wait,
+        message = @lv_msg
+        WHERE requestid = @i_item-requestid
+        AND zlineno = @i_item-zlineno.
+        COMMIT WORK AND WAIT.
+        lo_api_acc->close( ).
+        RETURN.
+    ENDTRY.
+    lo_api_acc->close( ).
+    IF lt_fi_items[] IS INITIAL.
+      MESSAGE e012(/eacm/a24) WITH ls_zprdo-bukrs ls_zprdo-gjahr ls_zprdo-belnr INTO lv_msg.
+      UPDATE /eacm/a24logi
+      SET status = @c_i_wait,
+      message = @lv_msg
+      WHERE requestid = @i_item-requestid
+      AND zlineno = @i_item-zlineno.
+      COMMIT WORK AND WAIT.
+      RETURN.
+    ENDIF.
 
+    LOOP AT lt_fi_items INTO DATA(ls_fi_items)
+        WHERE financial_account_type = 'D'.
+
+      ls_zprdo-zlord += ls_fi_items-amount_in_company_curr.
+      ls_zprdo-zimlr += ls_fi_items-amount_in_trans_currency.
+
+      IF ls_fi_items-due_calculation_base_date > ls_zprdo-zutmx.
+        ls_zprdo-zutmx = ls_fi_items-due_calculation_base_date.
+      ENDIF.
+
+      ls_zprdo-zterm = ls_fi_items-payment_terms.
+
+      IF ls_fi_items-customer IS NOT INITIAL.
+        "KNRZA (Cliente Pagatore)
+        "cliente Centrale in caso di gruppi d'acquisto
+        ls_zprdo-knrza = ls_fi_items-customer.
+        DATA(fl_knrza) = abap_true.
+      ENDIF.
+
+    ENDLOOP.
+
+    IF fl_knrza = abap_false.
+      "Payer client not found in accounting &1 &2 &3
+      MESSAGE e013(/eacm/a24) WITH ls_zprdo-bukrs ls_zprdo-belnr ls_zprdo-gjahr INTO lv_msg.
+      UPDATE /eacm/a24logi
+      SET status = @c_i_wait,
+      message = @lv_msg
+      WHERE requestid = @i_item-requestid
+      AND zlineno = @i_item-zlineno.
+      COMMIT WORK AND WAIT.
+      RETURN.
+    ENDIF.
+    CLEAR fl_knrza.
+
+    IF ls_zprdo-zlord > 0.
+      ls_zprdo-vbtyp = 'M'.
+    ELSE.
+      ls_zprdo-vbtyp = 'O'.
+    ENDIF.
 
     ls_zprdo-zpcpr = i_comm-pprov / 1000.
     ls_zprdo-zestra = i_zestra.
@@ -1077,6 +1171,8 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     ls_zprdo-zaucr = cl_abap_context_info=>get_user_technical_name( ).
     ls_zprdo-zdtcr = cl_abap_context_info=>get_system_date( ).
     ls_zprdo-zorcr = cl_abap_context_info=>get_system_time( ).
+    GET TIME STAMP FIELD ls_zprdo-created_at.
+    ls_zprdo-created_by = cl_abap_context_info=>get_user_technical_name( ).
     ls_zprdo-tcode = 'A24'.
     CLEAR: ls_zprdo-zcamd, ls_zprdo-zdtmd, ls_zprdo-zormd.
     ls_zprdo-vtweg = '01'.
@@ -1097,6 +1193,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     IF sy-subrc = 0.
       UPDATE /eacm/a24logi
       SET   status = @c_i_uploaded,
+            message = @space,
             vkorg = @ls_zprdo-vkorg,
             vtweg = @ls_zprdo-vtweg,
             zclpr = @ls_zprdo-zclpr,
@@ -1114,6 +1211,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD get_no_estra.
     DATA lv_object   TYPE cl_numberrange_objects=>nr_attributes-object.
@@ -1134,6 +1232,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD monthly_commissions.
 
@@ -1307,12 +1406,12 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 
     r_result-zlineno += 1.
 
-    INSERT /eacm/a24logi FROM @r_result.
-    IF sy-subrc <> 0.
-      CLEAR r_result.
-    ELSE.
-      COMMIT WORK AND WAIT.
-    ENDIF.
+*    INSERT /eacm/a24logi FROM @r_result.
+*    IF sy-subrc <> 0.
+*      CLEAR r_result.
+*    ELSE.
+*      COMMIT WORK AND WAIT.
+*    ENDIF.
 
   ENDMETHOD.
 
@@ -1362,50 +1461,30 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD run.
-    DATA lv_zestra TYPE /eacm/prdo-zestra.
-    CLEAR lv_zestra.
+    TRY.
 
-    DATA(lt_items) = get_items( ).
 
-    LOOP AT lt_items INTO DATA(ls_items).
-      DATA(lv_parsed_records) = parse( ls_items-record ).
+        DATA lv_zestra TYPE /eacm/prdo-zestra.
+        CLEAR lv_zestra.
 
-      IF duplicate(
-           i_item   = ls_items
-           i_record = lv_parsed_records
-         ) = abap_true.
-        CONTINUE.
-      ENDIF.
+        DATA(lt_items) = get_items( ).
 
-      DATA(ls_commission) = make_commission(
-                              i_item   = ls_items
-                              i_record = lv_parsed_records
-                            ).
-      IF ls_commission IS NOT INITIAL.
-        IF lv_zestra IS INITIAL.
-          lv_zestra = get_no_estra( ).
-          IF lv_zestra IS INITIAL.
-            RAISE EXCEPTION TYPE cx_apj_rt_content
-              MESSAGE e004(/eacm/a24) .
+        LOOP AT lt_items INTO DATA(ls_items).
+          DATA(lv_parsed_records) = parse( ls_items-record ).
+
+          IF duplicate(
+               i_item   = ls_items
+               i_record = lv_parsed_records
+             ) = abap_true.
+            CONTINUE.
           ENDIF.
-        ENDIF.
-        fill_zprdo( i_item   = ls_items
-                    i_comm = ls_commission
-                    i_zestra = lv_zestra ).
-      ENDIF.
 
-      "provvigione speciale
-      IF lv_parsed_records-vrtnr_2 CN '0 '.
-        lv_parsed_records-vrtnr = lv_parsed_records-vrtnr_2.
-        provvigione_specialist_ew( CHANGING i_record = lv_parsed_records ).
-        "Pulisco linea perché se c'è nuova DO devo aggiungere nuovo logi
-        DATA(new_item) = crete_new_item( ls_items ).
-        IF new_item IS NOT INITIAL.
-          ls_commission = make_commission(
-                            i_item   = new_item
-                            i_record = lv_parsed_records
-                          ).
+          DATA(ls_commission) = make_commission(
+                                  i_item   = ls_items
+                                  i_record = lv_parsed_records
+                                ).
           IF ls_commission IS NOT INITIAL.
             IF lv_zestra IS INITIAL.
               lv_zestra = get_no_estra( ).
@@ -1414,58 +1493,112 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
                   MESSAGE e004(/eacm/a24) .
               ENDIF.
             ENDIF.
-            fill_zprdo( i_item   = new_item
+            fill_zprdo( i_item   = ls_items
                         i_comm = ls_commission
                         i_zestra = lv_zestra ).
           ENDIF.
-        ENDIF.
 
-      ENDIF.
-    ENDLOOP.
+          "provvigione speciale
+          IF lv_parsed_records-vrtnr_2 CN '0 ' AND ls_items-no_specialist_ew = abap_false.
+
+            ls_items-no_specialist_ew = abap_true.
+            UPDATE /eacm/a24logi
+            SET no_specialist_ew = @abap_true
+            WHERE requestid = @ls_items-requestid
+            AND zlineno = @ls_items-zlineno.
+            COMMIT WORK AND WAIT.
+
+            lv_parsed_records-vrtnr = lv_parsed_records-vrtnr_2.
+            provvigione_specialist_ew( CHANGING i_record = lv_parsed_records ).
+            "Pulisco linea perché se c'è nuova DO devo aggiungere nuovo logi
+            DATA(new_item) = crete_new_item( ls_items ).
+            IF new_item IS NOT INITIAL.
+              ls_commission = make_commission(
+                                i_item   = new_item
+                                i_record = lv_parsed_records
+                              ).
+              IF ls_commission IS NOT INITIAL.
+                IF lv_zestra IS INITIAL.
+                  lv_zestra = get_no_estra( ).
+                  IF lv_zestra IS INITIAL.
+                    RAISE EXCEPTION TYPE cx_apj_rt_content
+                      MESSAGE e004(/eacm/a24) .
+                  ENDIF.
+                ENDIF.
+                INSERT /eacm/a24logi FROM @new_item.
+                IF sy-subrc = 0.
+                  COMMIT WORK AND WAIT.
+                  fill_zprdo( i_item   = new_item
+                              i_comm = ls_commission
+                              i_zestra = lv_zestra ).
+                ENDIF.
+              ENDIF.
+            ENDIF.
+
+          ENDIF.
+        ENDLOOP.
 
 *a24=>send_mail( ).
 
-    DATA(lt_header) = lt_items[].
-    SORT lt_header BY requestid.
-    DELETE ADJACENT DUPLICATES FROM lt_header COMPARING requestid.
-    CLEAR lt_items[].
-    LOOP AT lt_header INTO DATA(ls_header).
+        DATA(lt_header) = lt_items[].
+        SORT lt_header BY requestid.
+        DELETE ADJACENT DUPLICATES FROM lt_header COMPARING requestid.
+        CLEAR lt_items[].
+        LOOP AT lt_header INTO DATA(ls_header).
 
-      "aggiorna log /eacm/a24logp
-      DATA ls_a24logp TYPE /eacm/a24logp.
-      GET TIME STAMP FIELD ls_a24logp-tmsp.
+          "aggiorna log /eacm/a24logp
+          DATA ls_a24logp TYPE /eacm/a24logp.
+          GET TIME STAMP FIELD ls_a24logp-tmsp.
 
-      SELECT SINGLE                                     "#EC CI_NOORDER
-      FROM /eacm/a24logi
-      FIELDS requestid,
-      COUNT( * ) AS total_records,
-      SUM( CASE WHEN status =  @/eacm/cl_a24=>c_i_uploaded THEN 1 ELSE 0 END ) AS success_records,
-      SUM( CASE WHEN status = @/eacm/cl_a24=>c_i_error THEN 1 ELSE 0 END ) AS error_records,
-      SUM( CASE WHEN status = @/eacm/cl_a24=>c_i_wait THEN 1 ELSE 0 END ) AS wait_records
-      WHERE requestid = @ls_header-requestid
-      GROUP BY requestid
-      INTO CORRESPONDING FIELDS OF @ls_a24logp.
+          SELECT SINGLE                                 "#EC CI_NOORDER
+          FROM /eacm/a24logi
+          FIELDS requestid,
+          COUNT( * ) AS total_records,
+          SUM( CASE WHEN status =  @/eacm/cl_a24=>c_i_uploaded THEN 1 ELSE 0 END ) AS success_records,
+          SUM( CASE WHEN status = @/eacm/cl_a24=>c_i_error THEN 1 ELSE 0 END ) AS error_records,
+          SUM( CASE WHEN status = @/eacm/cl_a24=>c_i_wait THEN 1 ELSE 0 END ) AS wait_records,
+          SUM( CASE WHEN status = @/eacm/cl_a24=>c_i_notrelevant THEN 1 ELSE 0 END ) AS not_relevante
+          WHERE requestid = @ls_header-requestid
+          GROUP BY requestid
+          INTO CORRESPONDING FIELDS OF @ls_a24logp.
 
-      "calcolo dello stato finale
-      "se ci sono wait_records allora è parziale altrimenti l'elaborazione è completa
-      IF ls_a24logp-wait_records = 0.
-        ls_a24logp-status = /eacm/cl_a24=>c_h_complete.
-      ELSE.
-        ls_a24logp-status = /eacm/cl_a24=>c_h_partially.
-      ENDIF.
+          "calcolo dello stato finale
+          "se ci sono wait_records allora è parziale altrimenti l'elaborazione è completa
+          IF ls_a24logp-wait_records = 0.
+            ls_a24logp-status = /eacm/cl_a24=>c_h_complete.
+          ELSE.
+            ls_a24logp-status = /eacm/cl_a24=>c_h_partially.
+          ENDIF.
 
-      "aggiorna log /eacm/a24logp
-      ls_a24logp-requestid = ls_header-requestid.
-      INSERT /eacm/a24logp FROM @ls_a24logp.
+          "aggiorna log /eacm/a24logp
+          ls_a24logp-requestid = ls_header-requestid.
+          INSERT /eacm/a24logp FROM @ls_a24logp.
 
-      "aggiorna stato testata
-      UPDATE /eacm/a24logh SET status = @ls_a24logp-status WHERE requestid = @ls_header-requestid.
+          "aggiorna stato testata
+          UPDATE /eacm/a24logh SET status = @ls_a24logp-status WHERE requestid = @ls_header-requestid.
 
-    ENDLOOP.
-    COMMIT WORK AND WAIT.
+        ENDLOOP.
+        COMMIT WORK AND WAIT.
 
-    "aggiornamento importi
-    aggiornamento_importi( lt_header ).
+        "aggiornamento importi
+        aggiornamento_importi( lt_header ).
+
+      CLEANUP.
+        close_api_clients( ).
+    ENDTRY.
+    close_api_clients( ).
+  ENDMETHOD.
+
+
+  METHOD close_api_clients.
+    IF mo_api_bp IS BOUND.
+      mo_api_bp->close( ).
+      CLEAR mo_api_bp.
+    ENDIF.
+    IF mo_api_acc IS BOUND.
+      mo_api_acc->close( ).
+      CLEAR mo_api_acc.
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.
