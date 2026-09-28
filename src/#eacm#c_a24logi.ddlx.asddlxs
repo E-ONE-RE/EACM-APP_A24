@@ -16,7 +16,7 @@ annotate entity /EACM/C_A24LOGI with
       label: 'Dettaglio linee',
       position: 10 }
   ]
-  
+
 
   @UI.lineItem: [{ position: 10, label: 'Riga' }]
   @UI.identification: [{ position: 10, label: 'Riga' }]
@@ -53,7 +53,7 @@ annotate entity /EACM/C_A24LOGI with
   @UI.identification: [{ position: 80 }]
   Posnr;
 
-  //  @UI.identification: [{ position: 90, label: 'Record originale' }]
-  @UI.hidden: true
+  @UI.identification: [{ position: 90, label: 'Record originale' }]
+//  @UI.hidden: true
   Record;
 }

@@ -1,14 +1,14 @@
 {
   "formatVersion": "2",
   "header": {
-    "description": "{{appDescription}}",
+    "description": "A24 Processing",
     "originalLanguage": "en",
     "abapLanguageVersion": "cloudDevelopment"
   },
   "generalInformation": {
     "appType": "ui5",
     "catalogId": "SAP_TC_UI5_REPO_UIAD",
-    "targetMappingTitle": "Elaborazioni A24"
+    "targetMappingTitle": "A24 Processing"
   },
   "ui5AppDetails": {
     "appId": "eacm.a24log"
@@ -27,7 +27,7 @@
       "tileType": "static",
       "isDefault": true,
       "standard": {
-        "title": "Elaborazioni A24"
+        "title": "A24 Processing"
       }
     }
   ]

@@ -14,12 +14,6 @@ authorization master ( instance )
 
   action ( features : instance, authorization : none, lock : none )
   ProcessOnline result [1] $self;
-  side effects
-  {
-    action ProcessOnline affects field Status,
-        entity _Items,
-        entity _Processes;
-  }
 
   association _Items { create; }
   association _Processes { create; }

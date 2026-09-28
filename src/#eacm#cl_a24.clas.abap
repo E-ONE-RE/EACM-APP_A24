@@ -64,28 +64,6 @@ CLASS /eacm/cl_a24 DEFINITION
     TYPES vbeln TYPE /eacm/prdo-vbeln.
     TYPES END OF tp_dosum.
 
-
-*    TYPES BEGIN OF ty_bp_already_requested.
-*    TYPES partner_id TYPE kunnr.
-*    TYPES name1 TYPE /eacm/st_a24_commission-name1.
-*    TYPES END OF ty_bp_already_requested.
-*    DATA gt_bp_already_requested TYPE STANDARD TABLE OF ty_bp_already_requested.
-
-
-*    TYPES BEGIN OF ty_acc_already_requested.
-*    TYPES sender_bukrs TYPE bukrs.
-*    TYPES sender_belnr TYPE belnr_d.
-*    TYPES sender_gjahr TYPE gjahr.
-*    TYPES bukrs TYPE bukrs.
-*    TYPES belnr TYPE belnr_d.
-*    TYPES gjahr TYPE gjahr.
-*    TYPES blart TYPE blart.
-*    TYPES bldat TYPE bldat.
-*    TYPES END OF ty_acc_already_requested.
-*    DATA gt_acc_already_requested TYPE STANDARD TABLE OF ty_acc_already_requested.
-
-
-*    METHODS get_items RETURNING VALUE(r_items) TYPE /eacm/tt_a24logi.
     METHODS scrittura_record
       IMPORTING
         i_record TYPE /eacm/a24_scheme
@@ -946,12 +924,22 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     WHERE zcdaz = @ls_zprdo-zcdaz
     INTO @DATA(ls_zpraa).
     IF sy-subrc <> 0.
-      MESSAGE e008(/eacm/a24) WITH ls_zprdo-zcdaz INTO DATA(lv_msg).
-      UPDATE /eacm/a24logi
-      SET status = @c_i_error,
-      message = @lv_msg
-      WHERE requestid = @i_item-requestid
-        AND zlineno = @i_item-zlineno.
+      IF ls_zprdo-zcdaz = '0011323582'.
+        MESSAGE i008(/eacm/a24) WITH ls_zprdo-zcdaz INTO DATA(lv_msg).
+        UPDATE /eacm/a24logi
+        SET status = @c_i_notrelevant,
+        message = @lv_msg
+        WHERE requestid = @i_item-requestid
+          AND zlineno = @i_item-zlineno.
+      ELSE.
+        MESSAGE e008(/eacm/a24) WITH ls_zprdo-zcdaz INTO lv_msg.
+        UPDATE /eacm/a24logi
+        SET status = @c_i_error,
+        message = @lv_msg
+        WHERE requestid = @i_item-requestid
+          AND zlineno = @i_item-zlineno.
+
+      ENDIF.
       commit_if_requested( ).
       RETURN.
     ENDIF.
@@ -1641,7 +1629,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 
   METHOD commit_if_requested.
     IF mv_commit = abap_true.
-      commit_if_requested( ).
+      COMMIT WORK AND WAIT.
     ENDIF.
   ENDMETHOD.
 

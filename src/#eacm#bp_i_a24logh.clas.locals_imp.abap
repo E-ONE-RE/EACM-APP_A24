@@ -1,8 +1,8 @@
 CLASS lhc_Header DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
   PUBLIC SECTION.
-    CLASS-DATA gt_requestids TYPE SORTED TABLE OF /eacm/a24logh-requestid
-      WITH UNIQUE KEY table_line.
+*    CLASS-DATA gt_debug_requests TYPE SORTED TABLE OF /eacm/a24dbg
+*      WITH UNIQUE KEY requested_by.
 
   PRIVATE SECTION.
 
@@ -42,8 +42,8 @@ CLASS lhc_Header DEFINITION INHERITING FROM cl_abap_behavior_handler.
     METHODS cba_Processes FOR MODIFY
        entities_cba FOR CREATE Header\_Processes.
 
-    METHODS ProcessOnline FOR MODIFY
-       keys FOR ACTION Header~ProcessOnline RESULT result.
+*    METHODS ProcessOnline FOR MODIFY
+*       keys FOR ACTION Header~ProcessOnline RESULT result.
 
 ENDCLASS.
 
@@ -249,37 +249,76 @@ CLASS lhc_Header IMPLEMENTATION.
   METHOD cba_Processes.
   ENDMETHOD.
 
-  METHOD ProcessOnline.
-    READ ENTITIES OF /eacm/i_a24logh IN LOCAL MODE
-        ENTITY Header ALL FIELDS
-        WITH CORRESPONDING #( keys )
-        RESULT DATA(lt_headers).
-
-    LOOP AT lt_headers INTO DATA(ls_header).
-      IF ls_header-Status <> /eacm/cl_a24=>c_h_received
-         AND ls_header-Status <> /eacm/cl_a24=>c_h_partially.
-        APPEND VALUE #(
-          %tky        = ls_header-%tky
-          %fail-cause = if_abap_behv=>cause-disabled )
-          TO failed-Header.
-
-        APPEND VALUE #(
-          %tky = ls_header-%tky
-          %msg = new_message_with_text(
-            severity = if_abap_behv_message=>severity-error
-            text = |Elaborazione online non ammessa per stato { ls_header-Status }| ) )
-          TO reported-Header.
-        CONTINUE.
-      ENDIF.
-
-      INSERT ls_header-Requestid INTO TABLE gt_requestids.
-
-      APPEND VALUE #(
-        %tky   = ls_header-%tky
-        %param = ls_header )
-        TO result.
-    ENDLOOP.
-  ENDMETHOD.
+*  METHOD ProcessOnline.
+*    IF lines( keys ) <> 1.
+*      LOOP AT keys ASSIGNING FIELD-SYMBOL(<key>).
+*        APPEND VALUE #(
+*          %tky        = <key>-%tky
+*          %fail-cause = if_abap_behv=>cause-unspecific )
+*          TO failed-Header.
+*
+*        APPEND VALUE #(
+*          %tky = <key>-%tky
+*          %msg = new_message_with_text(
+*            severity = if_abap_behv_message=>severity-error
+*            text     = `Selezionare una sola richiesta da preparare per il debug.` ) )
+*          TO reported-Header.
+*      ENDLOOP.
+*      RETURN.
+*    ENDIF.
+*
+*    READ ENTITIES OF /eacm/i_a24logh IN LOCAL MODE
+*      ENTITY Header FIELDS ( Requestid Filename Status )
+*      WITH CORRESPONDING #( keys )
+*      RESULT DATA(lt_headers).
+*
+*    READ TABLE lt_headers INTO DATA(ls_header) INDEX 1.
+*    IF sy-subrc <> 0.
+*      APPEND VALUE #(
+*        %tky        = keys[ 1 ]-%tky
+*        %fail-cause = if_abap_behv=>cause-not_found )
+*        TO failed-Header.
+*      RETURN.
+*    ENDIF.
+*
+*    IF ls_header-Status <> /eacm/cl_a24=>c_h_received
+*       AND ls_header-Status <> /eacm/cl_a24=>c_h_partially.
+*      APPEND VALUE #(
+*        %tky        = ls_header-%tky
+*        %fail-cause = if_abap_behv=>cause-disabled )
+*        TO failed-Header.
+*
+*      APPEND VALUE #(
+*        %tky = ls_header-%tky
+*        %msg = new_message_with_text(
+*          severity = if_abap_behv_message=>severity-error
+*          text = |Preparazione debug non ammessa per stato { ls_header-Status }.| ) )
+*        TO reported-Header.
+*      RETURN.
+*    ENDIF.
+*
+*    DATA ls_debug_request TYPE /eacm/a24dbg.
+*    ls_debug_request-client       = sy-mandt.
+*    ls_debug_request-requested_by = sy-uname.
+*    ls_debug_request-requestid    = ls_header-Requestid.
+*    GET TIME STAMP FIELD ls_debug_request-requested_at.
+*
+*    DELETE TABLE gt_debug_requests
+*      WITH TABLE KEY requested_by = ls_debug_request-requested_by.
+*    INSERT ls_debug_request INTO TABLE gt_debug_requests.
+*
+*    APPEND VALUE #(
+*      %tky   = ls_header-%tky
+*      %param = ls_header )
+*      TO result.
+*
+*    APPEND VALUE #(
+*      %tky = ls_header-%tky
+*      %msg = new_message_with_text(
+*        severity = if_abap_behv_message=>severity-success
+*        text = |Richiesta { ls_header-Filename } preparata per { sy-uname }.| ) )
+*      TO reported-Header.
+*  ENDMETHOD.
 
 ENDCLASS.
 
@@ -334,9 +373,7 @@ CLASS lhc_Item IMPLEMENTATION.
 
     LOOP AT keys ASSIGNING FIELD-SYMBOL(<key>).
       IF NOT line_exists(
-*           result[ Requestid = <key>-Requestid
-*                   Zlineno   = <key>-Zlineno ] ).
-            result[ KEY id COMPONENTS %tky = <key>-%tky ] ).
+           result[ KEY id COMPONENTS %tky = <key>-%tky ] ).
         APPEND VALUE #(
           %tky        = <key>-%tky
           %fail-cause = if_abap_behv=>cause-not_found
@@ -464,8 +501,6 @@ CLASS lhc_Process IMPLEMENTATION.
 
     LOOP AT keys ASSIGNING FIELD-SYMBOL(<key>).
       IF NOT line_exists(
-*           result[ Requestid = <key>-Requestid
-*                   Tmsp      = <key>-Tmsp ] ).
            result[ KEY id COMPONENTS %tky = <key>-%tky ] ).
         APPEND VALUE #(
           %tky        = <key>-%tky
@@ -547,67 +582,20 @@ CLASS lhc_Process IMPLEMENTATION.
 
 ENDCLASS.
 
-CLASS lsc_I_A24LOGH DEFINITION INHERITING FROM cl_abap_behavior_saver_failed.
+CLASS lsc_I_A24LOGH DEFINITION INHERITING FROM cl_abap_behavior_saver.
   PROTECTED SECTION.
-
-    METHODS finalize REDEFINITION.
-
-    METHODS check_before_save REDEFINITION.
-
     METHODS save REDEFINITION.
-
     METHODS cleanup REDEFINITION.
-
     METHODS cleanup_finalize REDEFINITION.
-
 ENDCLASS.
 
 CLASS lsc_I_A24LOGH IMPLEMENTATION.
-
-  METHOD finalize.
-  ENDMETHOD.
-
-  METHOD check_before_save.
-  ENDMETHOD.
-
   METHOD save.
-
-    LOOP AT lhc_header=>gt_requestids INTO DATA(lv_requestid).
-
-      TRY.
-          NEW /eacm/cl_a24( )->process_request(
-            i_requestid = lv_requestid
-            i_commit    = abap_false ).
-
-        CATCH cx_apj_rt_content INTO DATA(lx_error).
-
-          APPEND VALUE #(
-            %tky = VALUE #( RequestId = lv_requestid )
-            %fail-cause = if_abap_behv=>cause-unspecific
-          ) TO failed-header.
-
-          APPEND VALUE #(
-            %tky = VALUE #( RequestId = lv_requestid )
-            %msg = new_message_with_text(
-              severity = if_abap_behv_message=>severity-error
-              text     = lx_error->get_text( ) )
-          ) TO reported-header.
-
-          "Un errore nella late save annulla tutto il changeset
-          EXIT.
-
-      ENDTRY.
-
-    ENDLOOP.
-
   ENDMETHOD.
 
   METHOD cleanup.
-    CLEAR lhc_header=>gt_requestids.
   ENDMETHOD.
 
   METHOD cleanup_finalize.
-    CLEAR lhc_header=>gt_requestids.
   ENDMETHOD.
-
 ENDCLASS.
