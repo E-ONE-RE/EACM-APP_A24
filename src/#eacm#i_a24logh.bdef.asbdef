@@ -1,0 +1,50 @@
+unmanaged implementation in class /eacm/bp_i_a24logh unique;
+strict ( 2 );
+
+define behavior for /EACM/I_A24LOGH alias Header
+//late numbering
+lock master
+authorization master ( instance )
+//etag master <field_name>
+{
+  create ( authorization : global );
+  update;
+  delete;
+  field ( readonly ) Requestid;
+
+  action ( features : instance, authorization : none, lock : none )
+  ProcessOnline result [1] $self;
+  side effects
+  {
+    action ProcessOnline affects field Status,
+        entity _Items,
+        entity _Processes;
+  }
+
+  association _Items { create; }
+  association _Processes { create; }
+}
+
+define behavior for /EACM/I_A24LOGI alias Item
+//late numbering
+lock dependent by _Header
+authorization dependent by _Header
+//etag master <field_name>
+{
+  update;
+  delete;
+  field ( readonly ) Requestid, Zlineno;
+  association _Header;
+}
+
+define behavior for /EACM/I_A24LOGP alias Process
+//late numbering
+lock dependent by _Header
+authorization dependent by _Header
+//etag master <field_name>
+{
+  update;
+  delete;
+  field ( readonly ) Requestid, Tmsp;
+  association _Header;
+}

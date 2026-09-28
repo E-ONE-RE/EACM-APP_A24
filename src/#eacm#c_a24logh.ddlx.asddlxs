@@ -29,8 +29,23 @@ annotate entity /EACM/C_A24LOGH with
     { id: 'Items', type: #LINEITEM_REFERENCE, label: 'Righe', position: 50, targetElement: '_Items' }
 
   ]
-  @UI.lineItem: [{ position: 10, label: 'Request ID' }]
-  @UI.identification: [{ position: 10, label: 'Request ID' }]
+  @UI.lineItem: [{ position: 10, label: 'Request ID' },
+    {
+    position: 5,
+    type: #FOR_ACTION,
+    dataAction: 'ProcessOnline',
+    label: 'Elabora online',
+    invocationGrouping: #ISOLATED
+  }
+  ]
+  @UI.identification: [{ position: 10, label: 'Request ID' },
+    {
+    position: 5,
+    type: #FOR_ACTION,
+    dataAction: 'ProcessOnline',
+    label: 'Elabora online'
+  }
+  ]
   Requestid;
 
   @UI.lineItem: [{ position: 15, label: 'File name' }]

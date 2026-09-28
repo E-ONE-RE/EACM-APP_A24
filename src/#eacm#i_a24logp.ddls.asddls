@@ -11,7 +11,7 @@ define view entity /EACM/I_A24LOGP
       status          as Status,
       case status
         when 'RECEIVED'    then 0 //Information blue
-        when 'IN_PROGRESS' then 1 //rosso
+        when 'PROCESSING' then 1 //rosso
         when 'PARTIALLY'  then 2 //Critical Arancione/Giallo
         when 'COMPLETE' then 3  // Positive verde
         else 0 // Neutral

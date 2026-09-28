@@ -18,6 +18,13 @@ CLASS /eacm/cl_a24 DEFINITION
     CONSTANTS c_i_error TYPE c LENGTH 20 VALUE 'ERROR'.
     CONSTANTS c_i_wait TYPE c LENGTH 20 VALUE 'WAIT'.
 
+    METHODS process_request
+      IMPORTING
+        i_requestid TYPE /eacm/a24logh-requestid
+        i_commit    TYPE abap_bool DEFAULT abap_true
+      RAISING
+        cx_apj_rt_content.
+
 *    METHODS run RAISING cx_apj_rt.
     METHODS run RAISING cx_apj_rt_content.
   PROTECTED SECTION.
@@ -78,7 +85,7 @@ CLASS /eacm/cl_a24 DEFINITION
 *    DATA gt_acc_already_requested TYPE STANDARD TABLE OF ty_acc_already_requested.
 
 
-    METHODS get_items RETURNING VALUE(r_items) TYPE /eacm/tt_a24logi.
+*    METHODS get_items RETURNING VALUE(r_items) TYPE /eacm/tt_a24logi.
     METHODS scrittura_record
       IMPORTING
         i_record TYPE /eacm/a24_scheme
@@ -154,6 +161,18 @@ CLASS /eacm/cl_a24 DEFINITION
 
     METHODS close_api_clients.
 
+    DATA mv_commit TYPE abap_bool VALUE abap_true.
+
+    METHODS process
+      IMPORTING i_requestid TYPE /eacm/a24logh-requestid OPTIONAL
+      RAISING   cx_apj_rt_content.
+
+    METHODS get_items
+      IMPORTING i_requestid    TYPE /eacm/a24logh-requestid OPTIONAL
+      RETURNING VALUE(r_items) TYPE /eacm/tt_a24logi.
+
+    METHODS commit_if_requested.
+
 ENDCLASS.
 
 
@@ -197,14 +216,19 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     "Solo i record RECEIVED e WAIT sono da elaborare
     CLEAR r_items[].
 
-    SELECT FROM /eacm/a24logh
-    FIELDS requestid
-    WHERE ( status = @c_h_received OR status = @c_h_partially )
-    AND requestid = 'FE9AB502977E45FAAF09538E97912843'
-*    AND ( requestid = '6A125883B7DD49EEB2C7B166C72C589B' or
-*          requestid = 'F3B92EAE60BA4C8CBA43FD9F5EF36D8C' or
-*          requestid = 'FE9AB502977E45FAAF09538E97912843' )
-    INTO TABLE @DATA(lt_header).
+
+    IF i_requestid IS INITIAL.
+      SELECT FROM /eacm/a24logh
+        FIELDS requestid
+        WHERE status = @c_h_received OR status = @c_h_partially
+        INTO TABLE @DATA(lt_header).
+    ELSE.
+      SELECT FROM /eacm/a24logh
+        FIELDS requestid
+        WHERE requestid = @i_requestid
+          AND ( status = @c_h_received OR status = @c_h_partially )
+        INTO TABLE @lt_header.
+    ENDIF.
 
     LOOP AT lt_header INTO DATA(ls_header).
 
@@ -223,7 +247,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
           SET status = @c_h_complete
           WHERE requestid =  @ls_header-requestid.
         ENDIF.
-        COMMIT WORK AND WAIT.
+        commit_if_requested( ).
 
         SELECT FROM /eacm/a24logi
         FIELDS requestid, zlineno, status, message, record
@@ -259,7 +283,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @lv_msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       r_result = abap_true.
     ELSE.
       r_result = abap_false.
@@ -286,7 +310,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -297,7 +321,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -308,7 +332,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -319,7 +343,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -330,7 +354,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -345,7 +369,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -356,7 +380,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -367,7 +391,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @msg
         WHERE requestid = @i_item-requestid
         AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -378,7 +402,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @msg
         WHERE requestid = @i_item-requestid
         AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -407,7 +431,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @lv_msg
         WHERE requestid = @i_item-requestid
         AND zlineno = @i_item-zlineno.
-        COMMIT WORK AND WAIT.
+        commit_if_requested( ).
         RETURN.
 
       ENDIF.
@@ -437,7 +461,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
          message = @lv_message
          WHERE requestid = @i_item-requestid
          AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       CLEAR r_result.
       RETURN.
     ENDIF.
@@ -883,7 +907,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -928,7 +952,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @lv_msg
       WHERE requestid = @i_item-requestid
         AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -951,7 +975,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @lv_msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -986,7 +1010,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @lv_msg
         WHERE requestid = @i_item-requestid
         AND zlineno = @i_item-zlineno.
-        COMMIT WORK AND WAIT.
+        commit_if_requested( ).
         lo_api_map->close( ).
         RETURN.
 
@@ -1051,7 +1075,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
             message = @lv_msg
             WHERE requestid = @i_item-requestid
             AND zlineno = @i_item-zlineno.
-            COMMIT WORK AND WAIT.
+            commit_if_requested( ).
             RETURN.
           ENDIF.
         CATCH /eacm/cx_api_error INTO DATA(lx).
@@ -1114,7 +1138,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         message = @lv_msg
         WHERE requestid = @i_item-requestid
         AND zlineno = @i_item-zlineno.
-        COMMIT WORK AND WAIT.
+        commit_if_requested( ).
         lo_api_acc->close( ).
         RETURN.
     ENDTRY.
@@ -1126,7 +1150,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @lv_msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
 
@@ -1159,7 +1183,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       message = @lv_msg
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
       RETURN.
     ENDIF.
     CLEAR fl_knrza.
@@ -1208,7 +1232,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
             zidag = @ls_zprdo-zidag
       WHERE requestid = @i_item-requestid
       AND zlineno = @i_item-zlineno.
-      COMMIT WORK AND WAIT.
+      commit_if_requested( ).
 
 *    "Se il record è arrivato fin qui non ha errori e può andare a valorizzare
 *    "la tabella dei progressivi mensili
@@ -1299,7 +1323,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 
 *    "salvo il progressivo sul DB. Il record viene aggiunto o modificato
     MODIFY /eacm/pragepg FROM @ls_pragepg.
-    COMMIT WORK AND WAIT.
+    commit_if_requested( ).
 
   ENDMETHOD.
 
@@ -1415,7 +1439,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 *    IF sy-subrc <> 0.
 *      CLEAR r_result.
 *    ELSE.
-*      COMMIT WORK AND WAIT.
+*      commit_if_requested( ).
 *    ENDIF.
 
   ENDMETHOD.
@@ -1468,13 +1492,166 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
 
 
   METHOD run.
-    TRY.
 
+    mv_commit = abap_true.
+    process( ).
+
+*    TRY.
+*
+*
+*        DATA lv_zestra TYPE /eacm/prdo-zestra.
+*        CLEAR lv_zestra.
+*
+*        DATA(lt_items) = get_items( ).
+*
+*        LOOP AT lt_items INTO DATA(ls_items).
+*          DATA(lv_parsed_records) = parse( ls_items-record ).
+*
+*          IF duplicate(
+*               i_item   = ls_items
+*               i_record = lv_parsed_records
+*             ) = abap_true.
+*            CONTINUE.
+*          ENDIF.
+*
+*          DATA(ls_commission) = make_commission(
+*                                  i_item   = ls_items
+*                                  i_record = lv_parsed_records
+*                                ).
+*          IF ls_commission IS NOT INITIAL.
+*            IF lv_zestra IS INITIAL.
+*              lv_zestra = get_no_estra( ).
+*              IF lv_zestra IS INITIAL.
+*                RAISE EXCEPTION TYPE cx_apj_rt_content
+*                  MESSAGE e004(/eacm/a24) .
+*              ENDIF.
+*            ENDIF.
+*            fill_zprdo( i_item   = ls_items
+*                        i_comm = ls_commission
+*                        i_zestra = lv_zestra ).
+*          ENDIF.
+*
+*          "provvigione speciale
+*          IF lv_parsed_records-vrtnr_2 CN '0 ' AND ls_items-no_specialist_ew = abap_false.
+*
+*            ls_items-no_specialist_ew = abap_true.
+*            UPDATE /eacm/a24logi
+*            SET no_specialist_ew = @abap_true
+*            WHERE requestid = @ls_items-requestid
+*            AND zlineno = @ls_items-zlineno.
+*            commit_if_requested( ).
+*
+*            lv_parsed_records-vrtnr = lv_parsed_records-vrtnr_2.
+*            provvigione_specialist_ew( CHANGING i_record = lv_parsed_records ).
+*            "Pulisco linea perché se c'è nuova DO devo aggiungere nuovo logi
+*            DATA(new_item) = crete_new_item( ls_items ).
+*            IF new_item IS NOT INITIAL.
+*              ls_commission = make_commission(
+*                                i_item   = new_item
+*                                i_record = lv_parsed_records
+*                              ).
+*              IF ls_commission IS NOT INITIAL.
+*                IF lv_zestra IS INITIAL.
+*                  lv_zestra = get_no_estra( ).
+*                  IF lv_zestra IS INITIAL.
+*                    RAISE EXCEPTION TYPE cx_apj_rt_content
+*                      MESSAGE e004(/eacm/a24) .
+*                  ENDIF.
+*                ENDIF.
+*                INSERT /eacm/a24logi FROM @new_item.
+*                IF sy-subrc = 0.
+*                  commit_if_requested( ).
+*                  fill_zprdo( i_item   = new_item
+*                              i_comm = ls_commission
+*                              i_zestra = lv_zestra ).
+*                ENDIF.
+*              ENDIF.
+*            ENDIF.
+*
+*          ENDIF.
+*        ENDLOOP.
+*
+**a24=>send_mail( ).
+*
+*        DATA(lt_header) = lt_items[].
+*        SORT lt_header BY requestid.
+*        DELETE ADJACENT DUPLICATES FROM lt_header COMPARING requestid.
+*        CLEAR lt_items[].
+*        LOOP AT lt_header INTO DATA(ls_header).
+*
+*          "aggiorna log /eacm/a24logp
+*          DATA ls_a24logp TYPE /eacm/a24logp.
+*          GET TIME STAMP FIELD ls_a24logp-tmsp.
+*
+*          SELECT SINGLE                                 "#EC CI_NOORDER
+*          FROM /eacm/a24logi
+*          FIELDS requestid,
+*          COUNT( * ) AS total_records,
+*          SUM( CASE WHEN status =  @/eacm/cl_a24=>c_i_uploaded THEN 1 ELSE 0 END ) AS success_records,
+*          SUM( CASE WHEN status = @/eacm/cl_a24=>c_i_error THEN 1 ELSE 0 END ) AS error_records,
+*          SUM( CASE WHEN status = @/eacm/cl_a24=>c_i_wait THEN 1 ELSE 0 END ) AS wait_records,
+*          SUM( CASE WHEN status = @/eacm/cl_a24=>c_i_notrelevant THEN 1 ELSE 0 END ) AS not_relevante
+*          WHERE requestid = @ls_header-requestid
+*          GROUP BY requestid
+*          INTO CORRESPONDING FIELDS OF @ls_a24logp.
+*
+*          "calcolo dello stato finale
+*          "se ci sono wait_records allora è parziale altrimenti l'elaborazione è completa
+*          IF ls_a24logp-wait_records = 0.
+*            ls_a24logp-status = /eacm/cl_a24=>c_h_complete.
+*          ELSE.
+*            ls_a24logp-status = /eacm/cl_a24=>c_h_partially.
+*          ENDIF.
+*
+*          "aggiorna log /eacm/a24logp
+*          ls_a24logp-requestid = ls_header-requestid.
+*          INSERT /eacm/a24logp FROM @ls_a24logp.
+*
+*          "aggiorna stato testata
+*          UPDATE /eacm/a24logh SET status = @ls_a24logp-status WHERE requestid = @ls_header-requestid.
+*
+*        ENDLOOP.
+*        commit_if_requested( ).
+*
+*        "aggiornamento importi
+*        aggiornamento_importi( lt_header ).
+*
+*      CLEANUP.
+*        close_api_clients( ).
+*    ENDTRY.
+*    close_api_clients( ).
+  ENDMETHOD.
+
+
+  METHOD close_api_clients.
+    IF mo_api_bp IS BOUND.
+      mo_api_bp->close( ).
+      CLEAR mo_api_bp.
+    ENDIF.
+    IF mo_api_acc IS BOUND.
+      mo_api_acc->close( ).
+      CLEAR mo_api_acc.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD process_request.
+    mv_commit = i_commit.
+    process( i_requestid ).
+  ENDMETHOD.
+
+  METHOD commit_if_requested.
+    IF mv_commit = abap_true.
+      commit_if_requested( ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD process.
+    TRY.
 
         DATA lv_zestra TYPE /eacm/prdo-zestra.
         CLEAR lv_zestra.
 
-        DATA(lt_items) = get_items( ).
+        DATA(lt_items) = get_items( i_requestid ).
 
         LOOP AT lt_items INTO DATA(ls_items).
           DATA(lv_parsed_records) = parse( ls_items-record ).
@@ -1511,7 +1688,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
             SET no_specialist_ew = @abap_true
             WHERE requestid = @ls_items-requestid
             AND zlineno = @ls_items-zlineno.
-            COMMIT WORK AND WAIT.
+            commit_if_requested( ).
 
             lv_parsed_records-vrtnr = lv_parsed_records-vrtnr_2.
             provvigione_specialist_ew( CHANGING i_record = lv_parsed_records ).
@@ -1532,7 +1709,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
                 ENDIF.
                 INSERT /eacm/a24logi FROM @new_item.
                 IF sy-subrc = 0.
-                  COMMIT WORK AND WAIT.
+                  commit_if_requested( ).
                   fill_zprdo( i_item   = new_item
                               i_comm = ls_commission
                               i_zestra = lv_zestra ).
@@ -1583,7 +1760,7 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
           UPDATE /eacm/a24logh SET status = @ls_a24logp-status WHERE requestid = @ls_header-requestid.
 
         ENDLOOP.
-        COMMIT WORK AND WAIT.
+        commit_if_requested( ).
 
         "aggiornamento importi
         aggiornamento_importi( lt_header ).
@@ -1592,18 +1769,6 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         close_api_clients( ).
     ENDTRY.
     close_api_clients( ).
-  ENDMETHOD.
-
-
-  METHOD close_api_clients.
-    IF mo_api_bp IS BOUND.
-      mo_api_bp->close( ).
-      CLEAR mo_api_bp.
-    ENDIF.
-    IF mo_api_acc IS BOUND.
-      mo_api_acc->close( ).
-      CLEAR mo_api_acc.
-    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.
