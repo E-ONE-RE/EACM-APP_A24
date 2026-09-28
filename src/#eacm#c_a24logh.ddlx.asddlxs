@@ -33,11 +33,10 @@ annotate entity /EACM/C_A24LOGH with
   @UI.identification: [{ position: 10, label: 'Request ID' }]
   Requestid;
 
-  //    @UI.lineItem: [{ position: 20, label: 'File' }]
-  //    @UI.identification: [{ position: 20, label: 'File' }]
-  //    @UI.selectionField: [{ position: 10 }]
-  //    file_name;
-
+  @UI.lineItem: [{ position: 15, label: 'File name' }]
+  @UI.identification: [{ position: 15, label: 'File name' }]
+  //      @UI.selectionField: [{ position: 15 }]
+  Filename;
   @UI.lineItem: [{
     position: 30, label: 'Stato',
   //    iconUrl: 'StatusIcon',
@@ -67,15 +66,15 @@ annotate entity /EACM/C_A24LOGH with
   ]
   CreatedBy;
 
-//  @UI.lineItem: [{ position: 50, label: 'Creato il' }]
-//  @UI.identification: [{ position: 50, label: 'Creato il' }]
+  //  @UI.lineItem: [{ position: 50, label: 'Creato il' }]
+  //  @UI.identification: [{ position: 50, label: 'Creato il' }]
   @UI.selectionField: [{ position: 50 }]
   @Consumption.filter.selectionType: #INTERVAL
   CreatedAt;
-  
+
   @UI.lineItem: [{ position: 60, label: 'Creato il' }]
   @UI.identification: [{ position: 60, label: 'Creato il' }]
-//  @UI.selectionField: [{ position: 60 }]
+  //  @UI.selectionField: [{ position: 60 }]
   @Consumption.filter.selectionType: #INTERVAL
   CreatedAtDisplay;
 }

@@ -1,7 +1,7 @@
 {
   "formatVersion": "2",
   "header": {
-    "description": "{{appDescription}}",
+    "description": "A24 Sales conditions",
     "originalLanguage": "en",
     "abapLanguageVersion": "cloudDevelopment"
   },
@@ -14,7 +14,7 @@
     "appId": "eacm.condsd"
   },
   "navigation": {
-    "targetMappingId": "UI5R_F750BBC7F236AED044BCBDCEA4FCEE81143753A0_TM",
+    "targetMappingId": "/EACM/CONDSD_UI5R_TM",
     "semanticObject": "ZEACM_CONDSD",
     "action": "manage",
     "desktop": true,
@@ -23,12 +23,12 @@
   },
   "tiles": [
     {
-      "id": "UI5R_F750BBC7F236AED044BCBDCEA4FCEE81143753A0_AL",
+      "id": "/EACM/CONDSD_UI5R_AL",
       "tileType": "static",
       "isDefault": true,
       "standard": {
         "title": "A24 Sales conditions",
-        "subtitle": "CONDSD"
+        "icon": "sap-icon://person-placeholder"
       }
     }
   ]

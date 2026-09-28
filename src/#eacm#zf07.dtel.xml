@@ -27,8 +27,8 @@
      <DDLANGUAGE>I</DDLANGUAGE>
      <DDTEXT>Tipo documento SD</DDTEXT>
      <REPTEXT>Tipo documento SD</REPTEXT>
-     <SCRTEXT_S>Tipo doc.</SCRTEXT_S>
-     <SCRTEXT_M>Tipo doc. SD</SCRTEXT_M>
+     <SCRTEXT_S>Doc. SD</SCRTEXT_S>
+     <SCRTEXT_M>Tipo documento SD</SCRTEXT_M>
      <SCRTEXT_L>Tipo documento SD</SCRTEXT_L>
     </item>
    </DD04_TEXTS>

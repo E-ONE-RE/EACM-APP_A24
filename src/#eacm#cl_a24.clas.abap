@@ -9,7 +9,7 @@ CLASS /eacm/cl_a24 DEFINITION
 
     "stato testata
     CONSTANTS c_h_received TYPE c LENGTH 20 VALUE 'RECEIVED'.
-    CONSTANTS c_h_inprogress TYPE c LENGTH 20 VALUE 'IN_PROGRESS'.
+    CONSTANTS c_h_inprogress TYPE c LENGTH 20 VALUE 'PROCESSING'.
     CONSTANTS c_h_partially TYPE c LENGTH 20 VALUE 'PARTIALLY'.
     CONSTANTS c_h_complete TYPE c LENGTH 20 VALUE 'COMPLETE'.
     "stato linea
@@ -200,7 +200,10 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
     SELECT FROM /eacm/a24logh
     FIELDS requestid
     WHERE ( status = @c_h_received OR status = @c_h_partially )
-*    AND requestid = '707603F24B8647AB872DDF50428CFFF9'
+    AND requestid = 'FE9AB502977E45FAAF09538E97912843'
+*    AND ( requestid = '6A125883B7DD49EEB2C7B166C72C589B' or
+*          requestid = 'F3B92EAE60BA4C8CBA43FD9F5EF36D8C' or
+*          requestid = 'FE9AB502977E45FAAF09538E97912843' )
     INTO TABLE @DATA(lt_header).
 
     LOOP AT lt_header INTO DATA(ls_header).
@@ -928,6 +931,8 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
       COMMIT WORK AND WAIT.
       RETURN.
     ENDIF.
+
+    ls_zprdo-ztpag = ls_zpraa-ztpag.
 
     "Controllo esistenza Contratto Agente
     SELECT FROM /eacm/prcn

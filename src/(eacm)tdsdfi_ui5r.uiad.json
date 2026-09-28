@@ -1,20 +1,20 @@
 {
   "formatVersion": "2",
   "header": {
-    "description": "{{appDescription}}",
-    "originalLanguage": "en",
+    "description": "Mappatura tipi documento SD-FI",
+    "originalLanguage": "it",
     "abapLanguageVersion": "cloudDevelopment"
   },
   "generalInformation": {
     "appType": "ui5",
     "catalogId": "SAP_TC_UI5_REPO_UIAD",
-    "targetMappingTitle": "SD–FI Document Type Mapping"
+    "targetMappingTitle": "Mappatura tipi documento SD-FI"
   },
   "ui5AppDetails": {
     "appId": "eacm.tdsdfi"
   },
   "navigation": {
-    "targetMappingId": "UI5R_7B27B53D2967982BF054ECA36C8EDF7CB0E6807D_TM",
+    "targetMappingId": "/EACM/TDSDFI_UI5R_TM",
     "semanticObject": "ZEACM_TDSDFI",
     "action": "manage",
     "desktop": true,
@@ -23,12 +23,13 @@
   },
   "tiles": [
     {
-      "id": "UI5R_7B27B53D2967982BF054ECA36C8EDF7CB0E6807D_AL",
+      "id": "/EACM/TDSDFI_UI5R_AL",
       "tileType": "static",
       "isDefault": true,
       "standard": {
-        "title": "SD–FI Document Type Mapping",
-        "subtitle": "TDSDFI"
+        "title": "Mappatura tipi documento SD-FI",
+        "subtitle": "TDSDFI",
+        "icon": "sap-icon://person-placeholder"
       }
     }
   ]

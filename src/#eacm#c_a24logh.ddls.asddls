@@ -6,13 +6,14 @@ define root view entity /EACM/C_A24LOGH
   as projection on /EACM/I_A24LOGH
 {
   key Requestid,
+      Filename,
       CreatedBy,
       CreatedAt,
       CreatedAtDisplay,
       Status,
-//      StatusIcon,
+      //      StatusIcon,
       StatusCriticality,
       /* Associations */
-      _Items : redirected to composition child /EACM/C_A24LOGI,
+      _Items     : redirected to composition child /EACM/C_A24LOGI,
       _Processes : redirected to composition child /EACM/C_A24LOGP
 }

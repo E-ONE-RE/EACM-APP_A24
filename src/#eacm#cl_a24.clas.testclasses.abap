@@ -1,7 +1,7 @@
 *"* use this source file for your ABAP unit test classes
 CLASS ltc_a24 DEFINITION FINAL
   FOR TESTING
-  DURATION SHORT
+  DURATION LONG
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.

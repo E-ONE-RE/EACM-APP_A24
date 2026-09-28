@@ -28,8 +28,8 @@
      <DDLANGUAGE>I</DDLANGUAGE>
      <DDTEXT>/EACM/BSARK</DDTEXT>
      <REPTEXT>Tipo ordine d&apos;acquisto</REPTEXT>
-     <SCRTEXT_S>Tipo OdA</SCRTEXT_S>
-     <SCRTEXT_M>Tipo ord. acquisto</SCRTEXT_M>
+     <SCRTEXT_S>Tipo OA</SCRTEXT_S>
+     <SCRTEXT_M>Tipo ord. acq.</SCRTEXT_M>
      <SCRTEXT_L>Tipo ordine d&apos;acquisto</SCRTEXT_L>
     </item>
    </DD04_TEXTS>

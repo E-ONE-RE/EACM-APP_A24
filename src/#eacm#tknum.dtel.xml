@@ -27,10 +27,10 @@
     <item>
      <DDLANGUAGE>I</DDLANGUAGE>
      <DDTEXT>/EACM/TKNUM</DDTEXT>
-     <REPTEXT>Numero della spedizione</REPTEXT>
-     <SCRTEXT_S>Spedizione</SCRTEXT_S>
+     <REPTEXT>Spedizione</REPTEXT>
+     <SCRTEXT_S>Spediz.</SCRTEXT_S>
      <SCRTEXT_M>Spedizione</SCRTEXT_M>
-     <SCRTEXT_L>N. spedizione</SCRTEXT_L>
+     <SCRTEXT_L>Spedizione</SCRTEXT_L>
     </item>
    </DD04_TEXTS>
   </asx:values>

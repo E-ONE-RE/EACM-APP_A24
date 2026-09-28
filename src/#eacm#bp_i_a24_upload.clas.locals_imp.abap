@@ -47,7 +47,7 @@ CLASS lhc_I_A24_UPLOAD DEFINITION INHERITING FROM cl_abap_behavior_handler.
 *                iv_requestid        TYPE sysuuid_x16
 *      RETURNING VALUE(rv_requestid) TYPE sysuuid_x16.
 
-  ENDCLASS.
+ENDCLASS.
 
 CLASS lhc_I_A24_UPLOAD IMPLEMENTATION.
 
@@ -281,7 +281,7 @@ CLASS lsc_I_A24_UPLOAD IMPLEMENTATION.
       VALUE cl_apj_rt_api=>ty_start_info(
         timestamp = cl_abap_tstmp=>add_to_short(
           tstmp = lv_now
-          secs  = 30 ) ).
+          secs  = 60 ) ).
 
     TRY.
         cl_apj_rt_api=>schedule_job(
@@ -290,8 +290,19 @@ CLASS lsc_I_A24_UPLOAD IMPLEMENTATION.
             iv_job_text            = 'A24'
             is_start_info          = ls_start_info
         ).
-      CATCH cx_apj_rt ##NO_HANDLER.
+      CATCH cx_apj_rt INTO DATA(lo_apj).
         "handle exception
+*        DATA(msg) = lo_apj->get_longtext( ).
+        DATA(ls_return) = lo_apj->get_bapiret2( ).
+        DATA lv_msg TYPE /eacm/a24logh-mimetype.
+        MESSAGE ID ls_return-id TYPE ls_return-type NUMBER ls_return-number
+            WITH ls_return-message_v1 ls_return-message_v2 ls_return-message_v3 ls_return-message_v4
+            INTO lv_msg.
+*        LOOP AT lhc_I_A24_UPLOAD=>gt_header INTO DATA(ls_logh).
+*          UPDATE /eacm/a24logh
+*          SET status = @/eacm/cl_a24=>c_i_error, mimetype = @lv_msg
+*          WHERE requestid = @ls_logh-requestid.
+*        ENDLOOP.
     ENDTRY.
     "\schedulazione job
 

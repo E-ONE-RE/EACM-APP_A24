@@ -1,4 +1,6 @@
 CLASS /eacm/bp_i_a24_upload DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF /eacm/i_a24_upload.
+protected section.
+private section.
 ENDCLASS.
 
 

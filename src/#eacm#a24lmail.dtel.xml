@@ -29,7 +29,7 @@
      <REPTEXT>Indirizzo e-mail per log errori</REPTEXT>
      <SCRTEXT_S>Log Indir.</SCRTEXT_S>
      <SCRTEXT_M>Log errori indirizzo</SCRTEXT_M>
-     <SCRTEXT_L>Indirizzo e-mail per log errori</SCRTEXT_L>
+     <SCRTEXT_L>E-mail per log errori</SCRTEXT_L>
     </item>
    </DD04_TEXTS>
   </asx:values>

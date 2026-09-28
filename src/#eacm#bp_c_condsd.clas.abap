@@ -1,4 +1,6 @@
 CLASS /eacm/bp_c_condsd DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF /eacm/c_condsd.
+protected section.
+private section.
 ENDCLASS.
 
 
