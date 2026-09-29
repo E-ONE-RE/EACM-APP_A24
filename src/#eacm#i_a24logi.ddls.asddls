@@ -11,7 +11,7 @@ define view entity /EACM/I_A24LOGI
       status    as Status,
       case status
         when 'UPLOADED'    then 3  // Positive verde
-        when 'NOT_RELEVANT' then 4 //Information blue
+        when 'IRRELEVANT' then 4 //Information blue
         when 'ERROR'  then 1 //rosso
         when 'WAIT' then 2 //Critical Arancione/Giallo
         else 0 // Neutral

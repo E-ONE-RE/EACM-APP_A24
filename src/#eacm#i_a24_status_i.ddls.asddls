@@ -2,7 +2,7 @@
 @AccessControl.authorizationCheck: #NOT_REQUIRED
 @EndUserText.label: 'Help per domino /EACM/D_A24_STATUS'
 @Metadata.ignorePropagatedAnnotations: true
-define view entity /EACM/I_A24_STATUS_H
+define view entity /EACM/I_A24_STATUS_I
   as select from DDCDS_CUSTOMER_DOMAIN_VALUE_T( p_domain_name: '/EACM/D_A24_STATUS')
 {
       @UI.hidden: true
@@ -19,8 +19,8 @@ define view entity /EACM/I_A24_STATUS_H
 where
        language  = $session.system_language
   and(
-       value_low = 'RECEIVED'
-    or value_low = 'PROCESSING'
-    or value_low = 'PARTIALLY'
-    or value_low = 'COMPLETE'
+       value_low = 'UPLOADED'
+    or value_low = 'IRRELEVANT'
+    or value_low = 'ERROR'
+    or value_low = 'WAIT'
   )
