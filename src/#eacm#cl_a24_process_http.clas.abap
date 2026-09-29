@@ -197,7 +197,10 @@ CLASS /eacm/cl_a24_process_http IMPLEMENTATION.
           is_body      = ls_response ).
 
       CATCH cx_web_message_error.
-        "La risposta HTTP non può più essere modificata.
+        "Il corpo della risposta non è stato letto o scritto correttamente.
+        response->set_status(
+          i_code   = 500
+          i_reason = `Internal Server Error` ).
     ENDTRY.
 
   ENDMETHOD.

@@ -6,8 +6,8 @@ CLASS lhc_Header DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
   PRIVATE SECTION.
 
-    METHODS get_instance_features FOR INSTANCE FEATURES
-      keys REQUEST requested_features FOR Header RESULT result.
+*    METHODS get_instance_features FOR INSTANCE FEATURES
+*      keys REQUEST requested_features FOR Header RESULT result.
 
     METHODS get_instance_authorizations FOR INSTANCE AUTHORIZATION
       keys REQUEST requested_authorizations FOR Header RESULT result.
@@ -49,21 +49,21 @@ ENDCLASS.
 
 CLASS lhc_Header IMPLEMENTATION.
 
-  METHOD get_instance_features.
-    READ ENTITIES OF /eacm/i_a24logh IN LOCAL MODE
-      ENTITY Header FIELDS ( Status )
-      WITH CORRESPONDING #( keys )
-      RESULT DATA(lt_headers).
-
-    result = VALUE #(
-      FOR ls_header IN lt_headers
-      ( %tky = ls_header-%tky
-        %action-ProcessOnline = COND #(
-          WHEN ls_header-Status = /eacm/cl_a24=>c_h_received
-            OR ls_header-Status = /eacm/cl_a24=>c_h_partially
-          THEN if_abap_behv=>fc-o-enabled
-          ELSE if_abap_behv=>fc-o-disabled ) ) ).
-  ENDMETHOD.
+*  METHOD get_instance_features.
+*    READ ENTITIES OF /eacm/i_a24logh IN LOCAL MODE
+*      ENTITY Header FIELDS ( Status )
+*      WITH CORRESPONDING #( keys )
+*      RESULT DATA(lt_headers).
+*
+*    result = VALUE #(
+*      FOR ls_header IN lt_headers
+*      ( %tky = ls_header-%tky
+*        %action-ProcessOnline = COND #(
+*          WHEN ls_header-Status = /eacm/cl_a24=>c_h_received
+*            OR ls_header-Status = /eacm/cl_a24=>c_h_partially
+*          THEN if_abap_behv=>fc-o-enabled
+*          ELSE if_abap_behv=>fc-o-disabled ) ) ).
+*  ENDMETHOD.
 
   METHOD get_instance_authorizations.
   ENDMETHOD.
