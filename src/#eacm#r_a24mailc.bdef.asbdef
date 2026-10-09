@@ -3,25 +3,33 @@ strict ( 2 );
 with draft;
 extensible;
 define behavior for /EACM/R_A24MAILC alias /eacm/rA24mailc
-persistent table /EACM/A24MAILC
+persistent table /eacm/a24mailc
 extensible
-draft table /EACM/A24MAILC_D
+draft table /eacm/a24mailc_d
 etag master LastChangedAt
 lock master total etag LocalLastChangedAt
-authorization master( global )
+authorization master ( global )
 {
   field ( mandatory : create )
-   ConfigID;
+  ConfigID;
+
+  field ( mandatory )
+  SendMode,
+  Recipient,
+  Sender;
+
+  validation validateMandatoryFields on save
+  { field SendMode, Recipient, Sender; }
 
   field ( readonly )
-   CreatedBy,
-   CreatedAt,
-   LastChangedBy,
-   LastChangedAt,
-   LocalLastChangedAt;
+  CreatedBy,
+  CreatedAt,
+  LastChangedBy,
+  LastChangedAt,
+  LocalLastChangedAt;
 
   field ( readonly : update )
-   ConfigID;
+  ConfigID;
 
 
   create;
@@ -32,21 +40,24 @@ authorization master( global )
   draft action Discard;
   draft action Edit;
   draft action Resume;
-  draft determine action Prepare;
-
-  mapping for /EACM/A24MAILC corresponding extensible
+  draft determine action Prepare
   {
-    ConfigID = CONFIG_ID;
-    Active = ACTIVE;
-    SendMode = SEND_MODE;
-    Recipient = RECIPIENT;
-    Sender = SENDER;
-    SubjectPrefix = SUBJECT_PREFIX;
-    CreatedBy = CREATED_BY;
-    CreatedAt = CREATED_AT;
-    LastChangedBy = LAST_CHANGED_BY;
-    LastChangedAt = LAST_CHANGED_AT;
-    LocalLastChangedAt = LOCAL_LAST_CHANGED_AT;
+    validation validateMandatoryFields;
   }
+
+  mapping for /eacm/a24mailc corresponding extensible
+    {
+      ConfigID           = CONFIG_ID;
+      Active             = ACTIVE;
+      SendMode           = SEND_MODE;
+      Recipient          = RECIPIENT;
+      Sender             = SENDER;
+      SubjectPrefix      = SUBJECT_PREFIX;
+      CreatedBy          = CREATED_BY;
+      CreatedAt          = CREATED_AT;
+      LastChangedBy      = LAST_CHANGED_BY;
+      LastChangedAt      = LAST_CHANGED_AT;
+      LocalLastChangedAt = LOCAL_LAST_CHANGED_AT;
+    }
 
 }
