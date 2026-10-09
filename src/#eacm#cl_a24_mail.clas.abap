@@ -76,6 +76,9 @@ CLASS /eacm/cl_a24_mail IMPLEMENTATION.
 
     IF sy-subrc = 0.
       rs_config-found = abap_true.
+    ELSE.
+      INSERT INTO /eacm/a24mailc VALUES @(
+        VALUE #( config_id   = 'DEFAULT' ) ).
     ENDIF.
 
   ENDMETHOD.
