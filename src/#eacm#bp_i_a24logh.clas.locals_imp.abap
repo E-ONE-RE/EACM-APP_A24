@@ -1,13 +1,15 @@
 CLASS lhc_Header DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
   PUBLIC SECTION.
-*    CLASS-DATA gt_debug_requests TYPE SORTED TABLE OF /eacm/a24dbg
-*      WITH UNIQUE KEY requested_by.
+
+    CLASS-DATA gt_reprocess_requestids
+      TYPE SORTED TABLE OF /eacm/a24logh-requestid
+      WITH UNIQUE KEY table_line.
 
   PRIVATE SECTION.
 
-*    METHODS get_instance_features FOR INSTANCE FEATURES
-*      keys REQUEST requested_features FOR Header RESULT result.
+    METHODS get_instance_features FOR INSTANCE FEATURES
+      keys REQUEST requested_features FOR Header RESULT result.
 
     METHODS get_instance_authorizations FOR INSTANCE AUTHORIZATION
       keys REQUEST requested_authorizations FOR Header RESULT result.
@@ -42,28 +44,30 @@ CLASS lhc_Header DEFINITION INHERITING FROM cl_abap_behavior_handler.
     METHODS cba_Processes FOR MODIFY
        entities_cba FOR CREATE Header\_Processes.
 
-*    METHODS ProcessOnline FOR MODIFY
-*       keys FOR ACTION Header~ProcessOnline RESULT result.
+    METHODS ResetForReprocessing FOR MODIFY
+      keys FOR ACTION Header~ResetForReprocessing
+      RESULT result.
 
 ENDCLASS.
 
 CLASS lhc_Header IMPLEMENTATION.
 
-*  METHOD get_instance_features.
-*    READ ENTITIES OF /eacm/i_a24logh IN LOCAL MODE
-*      ENTITY Header FIELDS ( Status )
-*      WITH CORRESPONDING #( keys )
-*      RESULT DATA(lt_headers).
-*
-*    result = VALUE #(
-*      FOR ls_header IN lt_headers
-*      ( %tky = ls_header-%tky
-*        %action-ProcessOnline = COND #(
-*          WHEN ls_header-Status = /eacm/cl_a24=>c_h_received
-*            OR ls_header-Status = /eacm/cl_a24=>c_h_partially
-*          THEN if_abap_behv=>fc-o-enabled
-*          ELSE if_abap_behv=>fc-o-disabled ) ) ).
-*  ENDMETHOD.
+  METHOD get_instance_features.
+
+    READ ENTITIES OF /eacm/i_a24logh IN LOCAL MODE
+      ENTITY Header FIELDS ( Status )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_headers).
+
+    result = VALUE #(
+      FOR ls_header IN lt_headers
+      ( %tky = ls_header-%tky
+        %action-ResetForReprocessing = COND #(
+          WHEN ls_header-Status = /eacm/cl_a24=>c_h_inprogress
+          THEN if_abap_behv=>fc-o-disabled
+          ELSE if_abap_behv=>fc-o-enabled ) ) ).
+
+  ENDMETHOD.
 
   METHOD get_instance_authorizations.
   ENDMETHOD.
@@ -319,6 +323,51 @@ CLASS lhc_Header IMPLEMENTATION.
 *        text = |Richiesta { ls_header-Filename } preparata per { sy-uname }.| ) )
 *      TO reported-Header.
 *  ENDMETHOD.
+
+  METHOD ResetForReprocessing.
+
+    READ ENTITIES OF /eacm/i_a24logh IN LOCAL MODE
+      ENTITY Header FIELDS ( Requestid Filename Status )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(lt_headers).
+
+    LOOP AT lt_headers INTO DATA(ls_header).
+
+      IF ls_header-Status = /eacm/cl_a24=>c_h_inprogress.
+        APPEND VALUE #(
+          %tky        = ls_header-%tky
+          %fail-cause = if_abap_behv=>cause-unspecific )
+          TO failed-Header.
+
+        APPEND VALUE #(
+          %tky = ls_header-%tky
+          %msg = new_message_with_text(
+            severity = if_abap_behv_message=>severity-error
+            text     = `La richiesta è attualmente in elaborazione.` ) )
+          TO reported-Header.
+        CONTINUE.
+      ENDIF.
+
+      INSERT ls_header-Requestid
+        INTO TABLE gt_reprocess_requestids.
+
+      ls_header-Status = /eacm/cl_a24=>c_h_received.
+
+      APPEND VALUE #(
+        %tky   = ls_header-%tky
+        %param = ls_header )
+        TO result.
+
+      APPEND VALUE #(
+        %tky = ls_header-%tky
+        %msg = new_message_with_text(
+          severity = if_abap_behv_message=>severity-success
+          text = |Richiesta { ls_header-Filename } preparata per la rielaborazione.| ) )
+        TO reported-Header.
+
+    ENDLOOP.
+
+  ENDMETHOD.
 
 ENDCLASS.
 
@@ -582,7 +631,9 @@ CLASS lhc_Process IMPLEMENTATION.
 
 ENDCLASS.
 
-CLASS lsc_I_A24LOGH DEFINITION INHERITING FROM cl_abap_behavior_saver.
+CLASS lsc_I_A24LOGH DEFINITION
+  INHERITING FROM cl_abap_behavior_saver_failed.
+
   PROTECTED SECTION.
     METHODS save REDEFINITION.
     METHODS cleanup REDEFINITION.
@@ -590,12 +641,57 @@ CLASS lsc_I_A24LOGH DEFINITION INHERITING FROM cl_abap_behavior_saver.
 ENDCLASS.
 
 CLASS lsc_I_A24LOGH IMPLEMENTATION.
+
   METHOD save.
+    DATA(lv_received) =
+      /eacm/cl_a24=>c_h_received.
+    DATA(lv_processing) =
+      /eacm/cl_a24=>c_h_inprogress.
+
+    LOOP AT lhc_header=>gt_reprocess_requestids
+         INTO DATA(lv_requestid).
+
+      UPDATE /eacm/a24logh
+        SET status = @lv_received
+        WHERE requestid = @lv_requestid
+          AND status <> @lv_processing.
+
+      IF sy-dbcnt = 0.
+        APPEND VALUE #(
+          %tky        = VALUE #( Requestid = lv_requestid )
+          %fail-cause = if_abap_behv=>cause-unspecific )
+          TO failed-header.
+
+        APPEND VALUE #(
+          %tky = VALUE #( Requestid = lv_requestid )
+          %msg = new_message_with_text(
+            severity = if_abap_behv_message=>severity-error
+            text = `La richiesta e' stata acquisita da un'altra elaborazione.` ) )
+          TO reported-header.
+        CONTINUE.
+      ENDIF.
+
+      UPDATE /eacm/a24logi
+        SET status  = @lv_received,
+            message = @space
+        WHERE requestid = @lv_requestid.
+
+      APPEND VALUE #(
+        %tky = VALUE #( Requestid = lv_requestid )
+        %msg = new_message_with_text(
+          severity = if_abap_behv_message=>severity-success
+          text = `Richiesta preparata per la rielaborazione.` ) )
+        TO reported-header.
+
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD cleanup.
+    CLEAR lhc_header=>gt_reprocess_requestids.
   ENDMETHOD.
 
   METHOD cleanup_finalize.
+    CLEAR lhc_header=>gt_reprocess_requestids.
   ENDMETHOD.
+
 ENDCLASS.

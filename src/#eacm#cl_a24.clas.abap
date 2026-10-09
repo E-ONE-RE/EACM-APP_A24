@@ -1708,12 +1708,12 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
           ENDIF.
         ENDLOOP.
 
-*a24=>send_mail( ).
 
+        DATA lt_run_summary TYPE /eacm/cl_a24_mail=>ty_t_summary.
         DATA(lt_header) = lt_items[].
         SORT lt_header BY requestid.
         DELETE ADJACENT DUPLICATES FROM lt_header COMPARING requestid.
-        CLEAR lt_items[].
+        CLEAR: lt_items[], lt_run_summary[].
         LOOP AT lt_header INTO DATA(ls_header).
 
           "aggiorna log /eacm/a24logp
@@ -1744,6 +1744,21 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
           ls_a24logp-requestid = ls_header-requestid.
           INSERT /eacm/a24logp FROM @ls_a24logp.
 
+          SELECT SINGLE FROM /eacm/a24logh
+          FIELDS file_name
+          WHERE requestid = @ls_header-requestid
+          INTO @DATA(lv_file_name).
+          APPEND VALUE #(
+            requestid = ls_a24logp-requestid
+            file_name = lv_file_name
+            status = ls_a24logp-status
+            total_records = ls_a24logp-total_records
+            success_records = ls_a24logp-success_records
+            error_records = ls_a24logp-error_records
+            wait_records = ls_a24logp-wait_records
+            not_relevant = ls_a24logp-not_relevante
+          )  TO lt_run_summary.
+
           "aggiorna stato testata
           UPDATE /eacm/a24logh SET status = @ls_a24logp-status WHERE requestid = @ls_header-requestid.
 
@@ -1753,10 +1768,29 @@ CLASS /eacm/cl_a24 IMPLEMENTATION.
         "aggiornamento importi
         aggiornamento_importi( lt_header ).
 
+        IF i_requestid IS INITIAL
+           AND lt_run_summary IS NOT INITIAL.
+
+          NEW /eacm/cl_a24_mail( )->send_summary(
+            EXPORTING
+              it_summary    = lt_run_summary
+            IMPORTING
+              ev_sent       = DATA(lv_sent)
+              ev_error_text = DATA(lv_mail_error)
+          ).
+
+          IF lv_mail_error IS NOT INITIAL.
+*            MESSAGE lv_mail_error TYPE 'W'.
+          ENDIF.
+
+        ENDIF.
+
       CLEANUP.
         close_api_clients( ).
     ENDTRY.
     close_api_clients( ).
+
+
   ENDMETHOD.
 
 ENDCLASS.

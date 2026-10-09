@@ -12,8 +12,13 @@ authorization master ( instance )
   delete;
   field ( readonly ) Requestid;
 
-//  action ( features : instance, authorization : none, lock : none )
-//  ProcessOnline result [1] $self;
+  action ( features : instance, authorization : update )
+  ResetForReprocessing result [1] $self;
+  side effects
+  {
+    action ResetForReprocessing affects field Status,
+        entity _Items;
+  }
 
   association _Items { create; }
   association _Processes { create; }

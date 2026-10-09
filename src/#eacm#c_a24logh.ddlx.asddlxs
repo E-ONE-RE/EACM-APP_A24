@@ -29,7 +29,13 @@ annotate entity /EACM/C_A24LOGH with
     { id: 'Items', type: #LINEITEM_REFERENCE, label: 'Righe', position: 50, targetElement: '_Items' }
 
   ]
-  @UI.lineItem: [{ position: 10, label: 'Request ID' }]
+  @UI.lineItem: [
+    { position: 10, label: 'Request ID' },
+    { position: 6, type: #FOR_ACTION, dataAction: 'ResetForReprocessing', label: 'Prepara rielaborazione', invocationGrouping: #ISOLATED }
+  ]
+  @UI.identification: [
+    { position: 6, type: #FOR_ACTION, dataAction: 'ResetForReprocessing', label: 'Prepara rielaborazione', invocationGrouping: #ISOLATED }
+  ]
   Requestid;
 
   @UI.lineItem: [{ position: 15, label: 'File name' }]

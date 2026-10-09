@@ -5,9 +5,9 @@ define behavior for /EACM/C_A24LOGH alias Header
 {
   use create;
   use update;
-//  use delete;
+  //  use delete;
 
-//  use action ProcessOnline;
+  use action ResetForReprocessing;
 
   use association _Items { create; }
   use association _Processes { create; }

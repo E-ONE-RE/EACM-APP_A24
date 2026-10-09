@@ -1,0 +1,11 @@
+@EndUserText: {
+  label: 'Service Definition for /EACM/C_A24MAILC'
+}
+@ObjectModel: {
+  leadingEntity: {
+    name: '/EACM/C_A24MAILC'
+  }
+}
+define service /EACM/UI_A24MAILC_O4 provider contracts odata_v4_ui {
+  expose /EACM/C_A24MAILC;
+}

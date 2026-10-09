@@ -1,0 +1,6 @@
+@EndUserText.label: '/EACM/R_A24MAILC'
+@MappingRole: true
+define role /EACM/R_A24MAILC {
+  grant select on /EACM/R_A24MAILC
+  where TRUE;
+}
